@@ -71,19 +71,29 @@ exports.createUser = (req, res) => {
   })
 }
 
-// Membuat fungsi createUser yang dimanfaatkan sebagai callback pada pendefinisian end point dengan metode post pada Object userRouter
+// Membuat fungsi updateUser yang dimanfaatkan sebagai callback pada pendefinisian end point dengan metode patch pada Object userRouter
 exports.updateUser = (req, res) => {
+  // Deklarasi variabel id dengan destructuring Object req.params
   const {id} = req.params
+
+  // Deklarasi variabel name dengan destructuring Object req.body
   const {name} = req.body
+
+  // Deklarasi variabel userId yang berisi nilai number id yang dikonversi dari string id yang didapatkan dari maping Array of Object users yang dikembalikan menjadi Array dan kemudian mencari indeks nilai dari Array tersebut berdasarkan id
   const userId = users.map(user => user.id).indexOf(Number(id))
+
+  // Pengondisian jika nilai userId tidak sama dengan -1 maka
   if(userId !== -1){
+    // key name pada Object dengan indeks ke-userId pada Array users akan di-reassign dengan nilai dari variabel name yang diperoleh dari destructuring pada req.body
     users[userId].name = name
+
+    // dan mengembalikan respon dengan message 'Update user successfully' dan results berisi object users dengan indeks ke-userId
     return res.json({
       success: true,
-      message: 'OK',
+      message: 'Update user successfully',
       resutls: users[userId]
     })
-  }else{
+  }else{ //selain itu akan mengembalikan respon dengan status 404 dan message 'User not found'
     return res.status(404).json({
       success: false,
       message: 'User not found'
@@ -91,29 +101,29 @@ exports.updateUser = (req, res) => {
   }
 }
 
-exports.removeUser = (req, res) => {
-  const {id,name} = req.body;
-  const users = [
-    {
-      id: 1,
-      name: 'John Doe'
-    },
-    {
-      id: 2,
-      name: 'Jean Doe'
-    }
-  ]
-  users.map(data => {
-    if(data.id == id && data.name === name){
-      return res.json({
-        success: true,
-        message: 'Successfully remove data'
-      })
-    }else{
-      return res.json({
-        success: false,
-        message: 'id or name is unavailable'
-      })
-    }
-  })
+// Membuat fungsi deleteUser yang dimanfaatkan sebagai callback pada pendefinisian end point dengan metode delete pada Object userRouter
+exports.deleteUser = (req, res) => {
+  // Deklarasi variabel id dari proses destructuring pada req.params yang diperoleh dari input user
+  const {id} = req.params;
+
+  // Deklarasi variabel user yang diperoleh dari Array of Object users yang difilter berdasarkan id tiap object yang sesuai dengan integer id dari proses destructuring req.params sebelumnya
+  const user = users.filter(user => user.id === Number(id))
+
+  // Pengondisian jika panjang Array user tidak sama dengan nol, maka 
+  if(user.length){
+    // Array of Object users akan di reasign dengan Array of Object dengan filtrasi berdasarkan id tiap object yang tidak sama dengan integer id dari proses destructuring req.params sebelumnya
+    users = users.filter(user => user.id !== Number(id))
+
+    // dan mengembalikan respon dengan message 'Delete success' dan results berisi Array user pada indeks ke-0
+    return res.json({
+      success: true,
+      message: 'Delete success',
+      results: user[0]
+    })
+  }else{ // selain itu akan mengembalikan respon dengan status 404 dan message 'User not found'
+    return res.status(404).json({
+      success: false,
+      message: 'User not found'
+    })
+  }
 }
