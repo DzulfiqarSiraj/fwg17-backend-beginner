@@ -66,36 +66,29 @@ exports.createUser = (req, res) => {
   // Mengembalikan respon dengan message 'Create user successfully' dan results yang berisi data Object user
   return res.json({
     success: true,
-    message: 'Create user successfully',
+    message: 'Create user successfully.',
     results: user
   })
 }
 
-exports.editUser = (req, res) => {
-  const {id,name,newName} = req.body;
-  const users = [
-    {
-      id: 1,
-      name: 'John Doe'
-    },
-    {
-      id: 2,
-      name: 'Jean Doe'
-    }
-  ]
-  users.map(data => {
-    if(data.id == id && data.name === name){
-      return res.json({
-        success: true,
-        message: 'Successfully update data'
-      })
-    }else{
-      return res.json({
-        success: false,
-        message: 'id or name is unavailable'
-      })
-    }
-  })
+// Membuat fungsi createUser yang dimanfaatkan sebagai callback pada pendefinisian end point dengan metode post pada Object userRouter
+exports.updateUser = (req, res) => {
+  const {id} = req.params
+  const {name} = req.body
+  const userId = users.map(user => user.id).indexOf(Number(id))
+  if(userId !== -1){
+    users[userId].name = name
+    return res.json({
+      success: true,
+      message: 'OK',
+      resutls: users[userId]
+    })
+  }else{
+    return res.status(404).json({
+      success: false,
+      message: 'User not found'
+    })
+  }
 }
 
 exports.removeUser = (req, res) => {

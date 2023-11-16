@@ -11,7 +11,7 @@ userRouter.get('/:id', userController.getDetailUser)
 // Mendefinisikan end point untuk CREATE USER dengan callback yang diimport dari file userController dengan fungsi createUser menggunakan fungsi post pada object userRouter
 userRouter.post('/', userController.createUser)
 
-userRouter.patch('/edit', userController.editUser)
+userRouter.patch('/:id', userController.updateUser)
 userRouter.delete('/remove', userController.removeUser)
 
 module.exports = userRouter
