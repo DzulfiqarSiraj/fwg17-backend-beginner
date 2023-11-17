@@ -13,8 +13,12 @@ let users = [
 // Deklarasi variabel countUser yang berisi data number dari panjang variabel users yang akan dimanfaatkan untuk melakukan increment pada saat membuat data baru dengan fungsi createUser
 let countUser = users.length
 
+const userModel = require('../models/users.model')
+
 // Membuat fungsi getAllUsers yang dimanfaatkan sebagai callback pada pendefinisian end point dengan metode get pada Object userRouter
-exports.getAllUsers = (req,res) => {
+exports.getAllUsers = async (req,res) => {
+  const users = await userModel.findAll()
+
   // res.json akan mengembalikan respon dari inputan user pada postman 
   return res.json({
     success: true,
@@ -25,18 +29,19 @@ exports.getAllUsers = (req,res) => {
 
 
 // Membuat fungsi getDetailUsers yang dimanfaatkan sebagai callback pada pendefinisian end point dengan metode get pada Object userRouter
-exports.getDetailUser = (req,res) => {
-  // deklarasi variabel user dengan melakukan filter pada req.listUser yang berisi Array of Object berdasarkan nilai yang dipassing pada req.params.id melalui postman 
-  const user = users.filter(item => item.id === Number(req.params.id))
+exports.getDetailUser = async (req,res) => {
+  const id = Number(req.params.id)
+  const user = await userModel.findOne(id)
+  // deklarasi variabel user dengan melakukan filter pada req.listUser yang berisi Array of Object berdasarkan nilai yang dipassing pada req.params.id melalui postman
   // req.params.id menyesuaikan end point /:id 
   // req.params.id akan berisi nilai yang dipassing melalui value pada key pada Path Variable pada url string pada GET method di postman
 
   // Pengkondisian jika terdapat value pada indeks 0 dari variabel user, maka akan mengembalikan nilai pada indeks 0 tersebut yang resultnya berupa Object
-  if(user[0]){
+  if(user){
     return res.json({
       success: true,
       message: 'Detail user',
-      results: user[0] // user[0] akan mengembalikan nilai berupa Object pada indeks ke 0 dari Array of Object
+      results: user // user[0] akan mengembalikan nilai berupa Object pada indeks ke 0 dari Array of Object
     })
   }else{
     // Jika user[0] berisi data undefined maka tidak ada Object yang akan dikembalikan melalui body pada postman
@@ -49,26 +54,22 @@ exports.getDetailUser = (req,res) => {
 
 
 // Membuat fungsi createUser yang dimanfaatkan sebagai callback pada pendefinisian end point dengan metode post pada Object userRouter
-exports.createUser = (req, res) => {
-  // Deklarasi variabel name melalui destructuring dari data yang diperoleh melalui req.body
-  const {name} = req.body;
-  // Increment pada countUser agar saat user baru ditambahkan, maka id akan secara otomatis berisi angka selanjutnya dari id data user sebelumnya
-  countUser = countUser + 1
+exports.createUser = async(req, res) => {
+  try{
+    const user = await userModel.insert(req.body)
 
-  // Deklarasi variabel user berupa Object yang berisi id dengan nilai hasil dari countUser yang telah diincrement dan name yang diperoleh melalui variabel name hasil destructuring req.body
-  const user = {
-    id: countUser,
-    name
-  };
-
-  // Melakukan penambahan data Object baru dari variabel user pada variabel users dengan metode push
-  users.push(user);
   // Mengembalikan respon dengan message 'Create user successfully' dan results yang berisi data Object user
   return res.json({
     success: true,
-    message: 'Create user successfully.',
+    message: 'Create user successfully',
     results: user
   })
+  }catch(err){
+    return res.status(404).json({
+      success: false,
+      message: 'Error'
+    })
+  }
 }
 
 // Membuat fungsi updateUser yang dimanfaatkan sebagai callback pada pendefinisian end point dengan metode patch pada Object userRouter
