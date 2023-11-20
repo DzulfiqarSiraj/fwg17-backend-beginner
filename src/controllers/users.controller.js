@@ -45,7 +45,7 @@ exports.createUser = async(req, res) => {
   
     return res.json({
     success: true,
-    message: 'Create user successfully',
+    message: 'Create User Successfully',
     results: user
   })
   }catch(err){
