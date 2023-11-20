@@ -69,3 +69,28 @@ exports.updateProduct = async (req, res) => {
     })
   }
 }
+
+exports.deleteProduct = async (req,res) => {
+  try{
+    const products = await productModel.findAll()
+    const {id} = req.params
+    for(let item in products){
+      if(String(products[item]['id']) === id){
+        const product = await productModel.delete(id)
+        return res.json({
+          success: true,
+          message: 'Delete success',
+          results: product
+        })
+      }}
+      return res.json({
+      success: false,
+      message: 'No existing data'
+    })
+  }catch(err){
+    return res.json({
+      success: false,
+      message: 'Internal server error'
+    })
+  }
+}

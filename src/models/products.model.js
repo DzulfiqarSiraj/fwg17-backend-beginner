@@ -50,3 +50,15 @@ exports.update = async (id, data) => {
   const {rows} = await db.query(sql, values)
   return rows[0]
 }
+
+
+exports.delete = async (id) => {
+  const sql = `
+  DELETE FROM "products"
+  WHERE "id"=$1
+  RETURNING *
+  `
+  const values = [id];
+  const {rows} = await db.query(sql, values);
+  return rows[0]
+}
