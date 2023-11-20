@@ -6,4 +6,15 @@ exports.findAll = async () => {
   const values = []
   const {rows} = await db.query(sql, values)
   return rows
-}
+};
+
+exports.findOne = async (id) => {
+  const sql = `
+  SELECT *
+  FROM "products"
+  WHERE "id" = $1
+  `
+  const values = [id]
+  const {rows} = await db.query(sql, values)
+  return rows[0]
+};
