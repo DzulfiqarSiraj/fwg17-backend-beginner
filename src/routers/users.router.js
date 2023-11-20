@@ -1,4 +1,3 @@
-// Membuat object userRouter dengan mengimpor dari express
 const userRouter = require('express').Router()
 
 const userController = require('../controllers/users.controller')
