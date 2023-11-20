@@ -63,13 +63,13 @@ exports.updateUser = async (req, res) => {
     const user = await userModel.update(id, req.body)
     return res.json({
       success: true,
-      message: 'Ok',
+      message: 'Update User Successfully',
       results: user
     })
   }catch(err){
     return res.json({
       success: false,
-      message: 'Update fail'
+      message: 'Update Fail'
     })
   }
 }

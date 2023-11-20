@@ -31,3 +31,22 @@ exports.insert = async (data) => {
   const {rows} = await db.query(sql, values)
   return rows[0]
 }
+
+exports.update = async (id, data) => {
+  const column = []
+  const values = []
+
+  values.push(id)
+  for(let item in data){
+    values.push(data[item])
+    column.push(`"${item}"=$${values.length}`)
+  }
+  const sql = `
+  UPDATE "products"
+  SET ${column.join(', ')}
+  WHERE "id"=$1
+  RETURNING *
+  `
+  const {rows} = await db.query(sql, values)
+  return rows[0]
+}

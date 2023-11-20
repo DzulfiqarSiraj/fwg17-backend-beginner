@@ -52,3 +52,20 @@ exports.createProduct = async(req, res) => {
     })
   }
 }
+
+exports.updateProduct = async (req, res) => {
+  try{
+    const {id} = req.params
+    const product = await productModel.update(id, req.body)
+    return res.json({
+      success: true,
+      message: 'Update Product Successfully',
+      results: product
+    })
+  } catch(err){
+    return res.json({
+      success: false,
+      message: 'Update Fail',
+    })
+  }
+}
