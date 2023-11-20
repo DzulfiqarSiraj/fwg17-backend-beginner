@@ -17,7 +17,6 @@ exports.getAllUsers = async (req,res) => {
 }
 
 
-
 exports.getDetailUser = async (req,res) => {
   try{
     const id = Number(req.params.id)

@@ -36,3 +36,19 @@ exports.getDetailProduct = async(req, res) => {
     })
   }
 }
+
+exports.createProduct = async(req, res) => {
+  try{
+    const product = await productModel.insert(req.body)
+    return res.json({
+      success: true,
+      message: "Create Product Successfully",
+      result: product
+    })
+  }catch(err){
+    return res.status(404).json({
+      success: false,
+      message: 'Error'
+    })
+  }
+}

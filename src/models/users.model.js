@@ -11,7 +11,7 @@ exports.findOne = async (id) => {
   const sql = `
   SELECT *
   FROM "users"
-  WHERE id = $1`
+  WHERE "id" = $1`
   const values = [id]
   const {rows} = await db.query(sql, values)
   return rows[0]
