@@ -15,7 +15,7 @@ router.use('/categories',require('./categories.router'))
 router.use('/product-categories',require('./productCategories.router'))
 router.use('/promo',require('./promo.router'))
 router.use('/orders',require('./orders.router'))
-// router.use('/order-details',require('./orderDetails.router'))
+router.use('/order-details',require('./orderDetails.router'))
 // router.use('/messages',require('./messages.router'))
 
 // Mengekspor router agar dapat digunakan oleh file lain
