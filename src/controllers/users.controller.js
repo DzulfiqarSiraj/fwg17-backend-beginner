@@ -98,5 +98,4 @@ exports.deleteUser = async (req, res) => {
       message: 'Internal server error'
     })
   }
-  
 }

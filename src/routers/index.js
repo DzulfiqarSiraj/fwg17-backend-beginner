@@ -7,7 +7,7 @@ router.use('/auth',require('./auth.router'))
 // Membuat rute end point '/users' melalui users.router.js 
 router.use('/users',require('./users.router'))
 
-// router.use('/products',require('./products.router'))
+router.use('/products',require('./products.router'))
 // router.use('/product-size',require('./productSize.router'))
 // router.use('/product-variant',require('./productVariant.router'))
 // router.use('/tags',require('./tags.router'))
