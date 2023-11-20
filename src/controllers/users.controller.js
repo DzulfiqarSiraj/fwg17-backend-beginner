@@ -77,17 +77,25 @@ exports.updateUser = async (req, res) => {
 
 exports.deleteUser = async (req, res) => {
   try{
+    const users = await userModel.findAll()
     const {id} = req.params
-    const user = await userModel.delete(id)
-    return res.json({
-      success: true,
-      message: 'Delete success',
-      results: user
+    for(let item in users){
+      if(String(users[item]['id']) === id){
+        const user = await userModel.delete(id)
+        return res.json({
+          success: true,
+          message: 'Delete success',
+          results: user
+        })
+      }}
+      return res.json({
+      success: false,
+      message: 'No existing data'
     })
   }catch(err){
     return res.json({
       success: false,
-      message: 'Delete fail'
+      message: 'Internal server error'
     })
   }
   
