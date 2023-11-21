@@ -17,24 +17,24 @@ const db = require('../lib/db.lib')
 //   return rows
 // };
 
-exports.findAll = async (keyword='', sortBy, order, page=1) => {
-  const visibleColumn = ['id','basePrice','name','createdAt']
-  const allowOrder = ['asc','desc']
-  sortBy = visibleColumn.includes(sortBy) ? sortBy : 'id'
-  order = allowOrder.includes(order) ? order : 'asc'
-  const limit = 5
-  const offset = (page-1) * limit
+// exports.findAll = async (keyword='', sortBy, order, page=1) => {
+//   const visibleColumn = ['id','basePrice','name','createdAt']
+//   const allowOrder = ['asc','desc']
+//   sortBy = visibleColumn.includes(sortBy) ? sortBy : 'id'
+//   order = allowOrder.includes(order) ? order : 'asc'
+//   const limit = 5
+//   const offset = (page-1) * limit
 
-  const sql = `
-  SELECT "id","name","basePrice","description","image","createdAt" 
-  FROM "products"
-  WHERE "name" ILIKE $1 ORDER BY ${sortBy} ${order}
-  LIMIT ${limit} OFFSET ${offset}
-  `
-  const values = [`%${keyword}%`]
-  const {rows} = await db.query(sql, values)
-  return rows
-};
+//   const sql = `
+//   SELECT "id","name","basePrice","description","image","createdAt" 
+//   FROM "products"
+//   WHERE "name" ILIKE $1 ORDER BY ${sortBy} ${order}
+//   LIMIT ${limit} OFFSET ${offset}
+//   `
+//   const values = [`%${keyword}%`]
+//   const {rows} = await db.query(sql, values)
+//   return rows
+// };
 
 // exports.findAll = async (keyword='', sortBy, order) => {
 //   const visibleColumn = ['id','basePrice','name','createdAt']
@@ -53,23 +53,24 @@ exports.findAll = async (keyword='', sortBy, order, page=1) => {
 //   return rows
 // };
 
-// exports.findAll = async (keyword='', sortBy, order) => {
-//   const visibleColumn = ['id','basePrice','name','createdAt']
-//   const allowOrder = ['asc','desc']
-//   sortBy = visibleColumn.includes(sortBy) ? sortBy : 'id'
-//   order = allowOrder.includes(order) ? order : 'asc'
+exports.findAll = async (keyword='', sortBy, order) => {
+  const visibleColumn = ['id','basePrice','name','createdAt']
+  const allowOrder = ['asc','desc']
+  sortBy = visibleColumn.includes(sortBy) ? sortBy : 'id'
+  order = allowOrder.includes(order) ? order : 'asc'
 
-//   const sql = `
-//   SELECT "p"."name","c"."name"
-//   FROM "products" "p"
-//   RIGHT JOIN "productCategories" "pc" ON "pc"."productId"="p"."id"
-//   RIGHT JOIN "categories" "c" ON "c"."id"="pc"."categoryId"
-//   ORDER BY "c".${sortBy} ${order}`
+  const sql = `
+  SELECT "p"."id","p"."name" "name","c"."name" "category","p"."basePrice"
+  FROM "products" "p"
+  JOIN "productCategories" "pc" ON "pc"."productId"="p"."id"
+  JOIN "categories" "c" ON "c"."id"="pc"."categoryId"
+  WHERE "c"."name" LIKE $1
+  ORDER BY "c"."${sortBy}" ${order}`
 
-//   const values = [keyword]
-//   const {rows} = await db.query(sql, values)
-//   return rows
-// };
+  const values = [`%${keyword}%`]
+  const {rows} = await db.query(sql, values)
+  return rows
+};
 
 exports.findOne = async (id) => {
   const sql = `
