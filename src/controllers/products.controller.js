@@ -2,10 +2,11 @@ const productModel = require('../models/products.model')
 
 exports.getAllProducts = async (req, res) => {
   try{
-    const products = await productModel.findAll()
+    const {search,sortBy,order,page} = req.query
+    const products = await productModel.findAll(search,sortBy,order,page)
     return res.json({
       success: true,
-      message: 'List all products',
+      message: 'List All Products',
       results: products
     })
   }catch(err){
