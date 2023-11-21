@@ -1,76 +1,37 @@
 const db = require('../lib/db.lib')
 
-// exports.findAll = async (keyword='', searchBy='ILIKE', sortBy, order) => {
-//   const visibleColumn = ['id','basePrice','name','createdAt']
-//   const allowOrder = ['asc','desc']
-//   sortBy = visibleColumn.includes(sortBy) ? sortBy : 'id'
-//   searchBy = visibleColumn.includes(searchBy) ? searchBy : 'name'
-//   order = allowOrder.includes(order) ? order : 'asc'
+exports.findAll = async (keyword='', searchBy='', sortBy, order, range = 'equal') => {
+  const myArr = ['id','basePrice','name','category','createdAt']
+  let operator;
+  let operation;
+  const allowedSort = ['asc','desc']
 
-//   const sql = `
-//   SELECT "id","name","basePrice","description","image","createdAt" 
-//   FROM "products"
-//   WHERE ${basePrice} ${searchBy == 'basePrice' ? '>':searchBy} $1 ORDER BY ${sortBy} ${order}
-//   `
-//   const values = [searchBy == 'basePrice' ? keyword : `%${keyword}%`]
-//   const {rows} = await db.query(sql, values)
-//   return rows
-// };
+  const column = myArr.includes(searchBy)? searchBy: ""
 
-// exports.findAll = async (keyword='', sortBy, order, page=1) => {
-//   const visibleColumn = ['id','basePrice','name','createdAt']
-//   const allowOrder = ['asc','desc']
-//   sortBy = visibleColumn.includes(sortBy) ? sortBy : 'id'
-//   order = allowOrder.includes(order) ? order : 'asc'
-//   const limit = 5
-//   const offset = (page-1) * limit
+  if(column === 'basePrice'){
+    operator = range === 'higher'? '>' : range ==='lower'? '<' : range === 'equal'? '=' : 'ILIKE'
+    operation = `${operator} ${keyword}`
+  } else {
+    operator = "ILIKE"
+    operation = `${operator} %${keyword}%`
+  }
 
-//   const sql = `
-//   SELECT "id","name","basePrice","description","image","createdAt" 
-//   FROM "products"
-//   WHERE "name" ILIKE $1 ORDER BY ${sortBy} ${order}
-//   LIMIT ${limit} OFFSET ${offset}
-//   `
-//   const values = [`%${keyword}%`]
-//   const {rows} = await db.query(sql, values)
-//   return rows
-// };
-
-// exports.findAll = async (keyword='', sortBy, order) => {
-//   const visibleColumn = ['id','basePrice','name','createdAt']
-//   const allowOrder = ['asc','desc']
-//   sortBy = visibleColumn.includes(sortBy) ? sortBy : 'id'
-//   order = allowOrder.includes(order) ? order : 'asc'
-
-//   const sql = `
-//   SELECT "id","name","basePrice","description","image","createdAt" 
-//   FROM "products"
-//   WHERE "basePrice" > $1 
-//   ORDER BY ${sortBy} ${order}
-//   `
-//   const values = [keyword]
-//   const {rows} = await db.query(sql, values)
-//   return rows
-// };
-
-exports.findAll = async (keyword='', sortBy, order) => {
-  const visibleColumn = ['id','basePrice','name','createdAt']
-  const allowOrder = ['asc','desc']
-  sortBy = visibleColumn.includes(sortBy) ? sortBy : 'id'
-  order = allowOrder.includes(order) ? order : 'asc'
-
-  const sql = `
-  SELECT "p"."id","p"."name" "name","c"."name" "category","p"."basePrice"
-  FROM "products" "p"
-  JOIN "productCategories" "pc" ON "pc"."productId"="p"."id"
-  JOIN "categories" "c" ON "c"."id"="pc"."categoryId"
-  WHERE "c"."name" LIKE $1
-  ORDER BY "c"."${sortBy}" ${order}`
-
-  const values = [`%${keyword}%`]
+  if(order == 'category'){
+    console.log(`
+    SELECT "p"."name","c"."name"
+    FROM "products" "p"
+    JOIN "productCategories" "pc" ON "pc"."productId"="p"."id"
+    JOIN "categories" "c" ON "c"."id"="pc"."categoryId"
+    ORDER BY ${order === 'category'? `"c"."name"` : `"p"."${order}"`} ${allowedSort.includes(sortBy)? sortBy:''}`)
+  } else {
+    console.log(`
+    SELECT * FROM "products" WHERE "${column}" ${operation} ORDER BY "${order}" ${allowedSort.includes(sortBy)? sortBy:''}`)
+  }
+  const values = [searchBy == 'basePrice' ? keyword : `%${keyword}%`]
   const {rows} = await db.query(sql, values)
   return rows
 };
+
 
 exports.findOne = async (id) => {
   const sql = `
@@ -107,7 +68,7 @@ exports.update = async (id, data) => {
   }
   const sql = `
   UPDATE "products"
-  SET ${column.join(', ')}
+  SET ${column.join(', ')}, "updatedAt" = now()
   WHERE "id"=$1
   RETURNING *
   `
