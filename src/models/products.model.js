@@ -5,6 +5,7 @@ exports.findAll = async (keyword='', searchBy='', sortBy, order, range = 'equal'
   let operator;
   let operation;
   const allowedSort = ['asc','desc']
+  let sql;
 
   const column = myArr.includes(searchBy)? searchBy: ""
 
@@ -17,15 +18,15 @@ exports.findAll = async (keyword='', searchBy='', sortBy, order, range = 'equal'
   }
 
   if(order == 'category'){
-    console.log(`
+    sql = `
     SELECT "p"."name","c"."name"
     FROM "products" "p"
     JOIN "productCategories" "pc" ON "pc"."productId"="p"."id"
     JOIN "categories" "c" ON "c"."id"="pc"."categoryId"
-    ORDER BY ${order === 'category'? `"c"."name"` : `"p"."${order}"`} ${allowedSort.includes(sortBy)? sortBy:''}`)
+    ORDER BY ${order === 'category'? `"c"."name"` : `"p"."${order}"`} ${allowedSort.includes(sortBy)? sortBy:''}`
   } else {
-    console.log(`
-    SELECT * FROM "products" WHERE "${column}" ${operation} ORDER BY "${order}" ${allowedSort.includes(sortBy)? sortBy:''}`)
+    sql = `
+    SELECT * FROM "products" WHERE "${column}" ${operation} ORDER BY "${order}" ${allowedSort.includes(sortBy)? sortBy:''}`
   }
   const values = [searchBy == 'basePrice' ? keyword : `%${keyword}%`]
   const {rows} = await db.query(sql, values)
