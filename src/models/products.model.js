@@ -1,37 +1,61 @@
 const db = require('../lib/db.lib')
 
-exports.findAll = async (keyword='', searchBy='', sortBy, order, range = 'equal') => {
-  const myArr = ['id','basePrice','name','category','createdAt']
+exports.findAll = async (keyword='', searchBy='', sortBy='', order='', range = 'ILIKE') => {
+  const allowedColumn = ['id','basePrice','name','category','createdAt']
   let operator;
   let operation;
   const allowedSort = ['asc','desc']
   let sql;
 
-  const column = myArr.includes(searchBy)? searchBy: ""
+  const column = allowedColumn.includes(searchBy)? searchBy: ""
 
   if(column === 'basePrice'){
     operator = range === 'higher'? '>' : range ==='lower'? '<' : range === 'equal'? '=' : 'ILIKE'
-    operation = `${operator} ${keyword}`
+    operation = `${operator} $1`
   } else {
     operator = "ILIKE"
-    operation = `${operator} %${keyword}%`
+    operation = `${operator} %$1%`
   }
 
   if(order == 'category'){
     sql = `
-    SELECT "p"."name","c"."name"
+    SELECT "p"."id","p"."name" "name","c"."name" "category","p"."basePrice"
     FROM "products" "p"
     JOIN "productCategories" "pc" ON "pc"."productId"="p"."id"
     JOIN "categories" "c" ON "c"."id"="pc"."categoryId"
+    WHERE "p"."${column}" ${operation}
     ORDER BY ${order === 'category'? `"c"."name"` : `"p"."${order}"`} ${allowedSort.includes(sortBy)? sortBy:''}`
   } else {
     sql = `
     SELECT * FROM "products" WHERE "${column}" ${operation} ORDER BY "${order}" ${allowedSort.includes(sortBy)? sortBy:''}`
   }
-  const values = [searchBy == 'basePrice' ? keyword : `%${keyword}%`]
+  const values = [keyword]
   const {rows} = await db.query(sql, values)
   return rows
 };
+
+// const findAll = async (keyword='',searchBy='',range='',orderBy='id',order) => {
+//   const columnSearch = searchBy === '' ? '' : searchBy === 'category'? `WHERE "c"."name"`:`WHERE "p"."${searchBy}"`
+//   const columnOrder = orderBy === 'category'? `ORDER BY "c"."name"`:`ORDER BY "p"."${orderBy}"`
+//   const allowedOrder = ['asc','desc']
+//   const allowedRange= 
+//   range == '' ? '' :
+//   searchBy == 'basePrice' && range === 'higher'? '>' :
+//   searchBy == 'basePrice' && range === 'lower'? '<' :
+//   searchBy == 'basePrice' && range === 'equal'? '=': 'ILIKE'
+
+//   const sql = `
+//   SELECT "p"."id", "p"."name" "name", "c"."name" "category", "p"."basePrice", "p"."createdAt", "p"."updatedAt"
+//   FROM "products" "p"
+//   JOIN "productCategories" "pc" ON "pc"."productId"="p"."id"
+//   JOIN "categories" "c" ON "c"."id"="pc"."categoryId"
+//   ${columnSearch} ${allowedRange} $1
+//   ${columnOrder} ${allowedOrder.includes(order)? order: 'asc'}
+//   `
+//   const values = [searchBy === 'basePrice'? keyword : `%${keyword}%`]
+//   const {rows} = await db.query(sql, values)
+//   return rows
+// }
 
 
 exports.findOne = async (id) => {

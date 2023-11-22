@@ -1,6 +1,6 @@
 const tagRouter = require('express').Router()
 
-const tagController = require('../controllers/tags.controller')
+const tagController = require('../../controllers/admin/tags.controller')
 
 tagRouter.get('/', tagController.getAllTags)
 tagRouter.get('/:id', tagController.getDetailTag)

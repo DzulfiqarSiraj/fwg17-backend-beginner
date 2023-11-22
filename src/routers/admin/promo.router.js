@@ -1,6 +1,6 @@
 const promoRouter = require('express').Router()
 
-const promoController = require('../controllers/promo.controller')
+const promoController = require('../../controllers/admin/promo.controller')
 
 promoRouter.get('/', promoController.getAllPromo)
 promoRouter.get('/:id', promoController.getDetailPromo)

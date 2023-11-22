@@ -1,4 +1,4 @@
-const productTagModel = require('../models/productTags.model')
+const productTagModel = require('../../models/productTags.model')
 
 exports.getAllProductTags = async (req,res) => {
   try{

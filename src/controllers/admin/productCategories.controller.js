@@ -1,4 +1,4 @@
-const productCategoryModel = require('../models/productCategories.model')
+const productCategoryModel = require('../../models/productCategories.model')
 
 exports.getAllProductCategories = async (req,res) => {
   try{

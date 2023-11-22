@@ -1,31 +1,31 @@
-const tagModel = require('../models/tags.model')
+const userModel = require('../../models/users.model')
 
-exports.getAllTags = async (req,res) => {
+exports.getAllUsers = async (req,res) => {
   try{
-    const tags = await tagModel.findAll()
+    const users = await userModel.findAll()
     return res.json({
       success: true,
-      message: "List All Tags",
-      results: tags
+      message: "List all users",
+      results: users
     })
   }catch(err){
     return res.json({
       success: true,
-      message: "Tags Not Found"
+      message: "Users Not Found"
     })
   }
 }
 
 
-exports.getDetailTag = async (req,res) => {
+exports.getDetailUser = async (req,res) => {
   try{
     const id = Number(req.params.id)
-    const tag = await tagModel.findOne(id)
-    if(tag){
+    const user = await userModel.findOne(id)
+    if(user){
       return res.json({
         success: true,
-        message: 'Detail Tag',
-        results: tag
+        message: 'Detail user',
+        results: user
       })
     }else{
       throw Error()
@@ -33,20 +33,20 @@ exports.getDetailTag = async (req,res) => {
   }catch(err){
     return res.json({
       success: false,
-      message: 'Tag Not Found'
+      message: 'User not found'
     })
   }
 }
 
 
-exports.createTag = async(req, res) => {
+exports.createUser = async(req, res) => {
   try{
-    const tag = await tagModel.insert(req.body)
+    const user = await userModel.insert(req.body)
   
     return res.json({
     success: true,
-    message: 'Create Tag Successfully',
-    results: tag
+    message: 'Create User Successfully',
+    results: user
   })
   }catch(err){
     return res.status(404).json({
@@ -57,14 +57,14 @@ exports.createTag = async(req, res) => {
 }
 
 
-exports.updateTag = async (req, res) => {
+exports.updateUser = async (req, res) => {
   try{
     const {id} = req.params
-    const tag = await tagModel.update(id, req.body)
+    const user = await userModel.update(id, req.body)
     return res.json({
       success: true,
-      message: 'Update Tag Successfully',
-      results: tag
+      message: 'Update User Successfully',
+      results: user
     })
   }catch(err){
     return res.json({
@@ -74,17 +74,17 @@ exports.updateTag = async (req, res) => {
   }
 }
 
-exports.deleteTag = async (req, res) => {
+exports.deleteUser = async (req, res) => {
   try{
-    const tags = await tagModel.findAll()
+    const users = await userModel.findAll()
     const {id} = req.params
-    for(let item in tags){
-      if(String(tags[item]['id']) === id){
-        const tag = await tagModel.delete(id)
+    for(let item in users){
+      if(String(users[item]['id']) === id){
+        const user = await userModel.delete(id)
         return res.json({
           success: true,
           message: 'Delete success',
-          results: tag
+          results: user
         })
       }}
       return res.json({

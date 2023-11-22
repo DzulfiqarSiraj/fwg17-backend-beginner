@@ -1,4 +1,4 @@
-const productRatingModel = require('../models/productRatings.model')
+const productRatingModel = require('../../models/productRatings.model')
 
 exports.getAllProductRatings = async (req,res) => {
   try{

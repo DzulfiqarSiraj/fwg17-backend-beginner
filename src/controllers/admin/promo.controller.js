@@ -1,4 +1,4 @@
-const promoModel = require('../models/promo.model')
+const promoModel = require('../../models/promo.model')
 
 exports.getAllPromo = async (req,res) => {
   try{

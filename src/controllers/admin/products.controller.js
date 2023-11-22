@@ -1,9 +1,9 @@
-const productModel = require('../models/products.model')
+const productModel = require('../../models/products.model')
 
 exports.getAllProducts = async (req, res) => {
   try{
-    const {search, searchBy, sortBy, order, range} = req.query
-    const products = await productModel.findAll(search,searchBy,sortBy,order, range)
+    const {search, searchBy, sortBy, order, range, } = req.query
+    const products = await productModel.findAll(search,searchBy,sortBy,order,range)
     return res.json({
       success: true,
       message: 'List All Products',

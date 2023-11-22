@@ -1,6 +1,6 @@
 const orderDetailRouter = require('express').Router()
 
-const orderDetailController = require('../controllers/orderDetails.controller')
+const orderDetailController = require('../../controllers/admin/orderDetails.controller')
 
 orderDetailRouter.get('/', orderDetailController.getAllOrderDetails)
 orderDetailRouter.get('/:id', orderDetailController.getDetailOrderDetail)

@@ -1,7 +1,8 @@
 const db = require('../lib/db.lib')
 
 exports.findAll = async () => {
-  const sql = `SELECT * FROM "users"`
+  const sql = `SELECT *
+  FROM "users"`
   const values = []
   const {rows} = await db.query(sql, values)
   return rows
@@ -9,7 +10,7 @@ exports.findAll = async () => {
 
 exports.findOne = async (id) => {
   const sql = `
-  SELECT *
+  SELECT "fullName","email","address","role","createdAt","updatedAt"
   FROM "users"
   WHERE "id" = $1`
   const values = [id]
@@ -42,7 +43,7 @@ exports.update = async (id, data) => {
 
   const sql = `
   UPDATE "users"
-  SET ${column.join(', ')}
+  SET ${column.join(', ')}, "updatedAt" = now()
   WHERE "id"=$1 
   RETURNING *
   `

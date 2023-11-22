@@ -1,4 +1,4 @@
-const categoryModel = require('../models/categories.model')
+const categoryModel = require('../../models/categories.model')
 
 exports.getAllCategories = async (req, res) => {
   try{

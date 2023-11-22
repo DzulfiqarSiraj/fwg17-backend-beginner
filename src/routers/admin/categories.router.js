@@ -1,6 +1,6 @@
 const categoryRouter = require('express').Router()
 
-const categoryController = require('../controllers/categories.controller')
+const categoryController = require('../../controllers/admin/categories.controller')
 
 categoryRouter.get('/',categoryController.getAllCategories);
 categoryRouter.get('/:id', categoryController.getDetailCategory)
