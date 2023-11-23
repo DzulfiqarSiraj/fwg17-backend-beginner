@@ -4,19 +4,57 @@ const argon = require('argon2')
 
 
 exports.login = async (req,res) => {
-  const {fullName, password} = req.body
+  try{
+  const {email, password} = req.body
+
+  const user = await userModel.findOneByEmail(email)
+
+  if(!user){
+    console.log('err')
+    throw Error('wrong')
+  }
   
-  if(fullName === 'admin@mail.com' && password === '1234'){
-    return res.json({
-      success: true,
-      message: 'Login success'
-    })
-  }else{
-    return res.json({
+  const verify = await argon.verify(user.password,password)
+  
+  if(!verify){
+    console.log('err')
+    throw Error('wrong')
+  }
+
+  return res.json({
+    success: true,
+    message: 'Login Success',
+    results: {
+      token: 'a012xyzb'
+    }
+  })
+
+  }catch(err){
+    if(err.message === 'wrong'){
+      return res.status(401).json({
+        success: false,
+        message: "Wrong Email or Password"
+      })
+
+    }
+    console.log(err)
+    return res.status(500).json({
       success: false,
-      message: 'Wrong username or password'
+      message: 'Internal Server Error'
     })
   }
+
+  // if(fullName === 'admin@mail.com' && password === '1234'){
+  //   return res.json({
+  //     success: true,
+  //     message: 'Login success'
+  //   })
+  // }else{
+  //   return res.json({
+  //     success: false,
+  //     message: 'Wrong username or password'
+  //   })
+  // }
 }
 
 exports.register = async (req, res) => {

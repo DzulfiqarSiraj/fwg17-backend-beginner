@@ -10,10 +10,20 @@ exports.findAll = async () => {
 
 exports.findOne = async (id) => {
   const sql = `
-  SELECT "fullName","email","address","role","createdAt","updatedAt"
+  SELECT "id","fullName","email","address","role","createdAt","updatedAt"
   FROM "users"
   WHERE "id" = $1`
   const values = [id]
+  const {rows} = await db.query(sql, values)
+  return rows[0]
+}
+
+exports.findOneByEmail = async (email) => {
+  const sql = `
+  SELECT "id","fullName","password","email","address","role","createdAt","updatedAt"
+  FROM "users"
+  WHERE "email" = $1`
+  const values = [email]
   const {rows} = await db.query(sql, values)
   return rows[0]
 }
