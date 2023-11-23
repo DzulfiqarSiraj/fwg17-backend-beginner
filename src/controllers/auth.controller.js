@@ -1,6 +1,7 @@
 const userModel = require('../models/users.model')
-
 const argon = require('argon2')
+const jwt = require('jsonwebtoken')
+
 
 
 exports.login = async (req,res) => {
@@ -20,12 +21,18 @@ exports.login = async (req,res) => {
     console.log('err')
     throw Error('wrong')
   }
+  
+  const payload = {
+    id: user.id,
+    role: user.role
+  }
+  const token = jwt.sign(payload, process.env.APP_SECRET || 'secretkey')
 
   return res.json({
     success: true,
     message: 'Login Success',
     results: {
-      token: 'a012xyzb'
+      token: token
     }
   })
 
