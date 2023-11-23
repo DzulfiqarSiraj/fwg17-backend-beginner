@@ -1,10 +1,12 @@
 const userModel = require('../models/users.model')
-exports.login = (req,res) => {
-  // Deklarasi variabel username dan password melalui destructuring object yang diperoleh dari req.body
-  const {username, password} = req.body
 
-  // Membuat pengondisian jika username = string admin@gmail.com dan password = string 1234 maka respon akan mengembalikan message 'Login success' sebaliknya akan mengembalikan message 'Wrong username or password'
-  if(username === 'admin@mail.com' && password === '1234'){
+const argon = require('argon2')
+
+
+exports.login = async (req,res) => {
+  const {fullName, password} = req.body
+  
+  if(fullName === 'admin@mail.com' && password === '1234'){
     return res.json({
       success: true,
       message: 'Login success'
@@ -20,10 +22,13 @@ exports.login = (req,res) => {
 exports.register = async (req, res) => {
   try{
     const {fullName, email, password, address, phoneNumber} = req.body
+
+    const hashed = await argon.hash(password)
+
     const data = userModel.insert({
       fullName,
       email,
-      password,
+      password: hashed,
       address,
       phoneNumber
   })
