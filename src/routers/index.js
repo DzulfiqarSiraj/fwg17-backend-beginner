@@ -1,10 +1,10 @@
 const router = require('express').Router()
 
+const authMiddleware = require('../middlewares/auth.middleware')
+
 
 router.use('/auth',require('./auth.router'))
+router.use('/admin/', authMiddleware, require('./admin'))
 
 
-router.use('/admin/',require('./admin'))
-
-// Mengekspor router agar dapat digunakan oleh file lain
 module.exports = router
