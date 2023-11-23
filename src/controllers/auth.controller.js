@@ -1,4 +1,4 @@
-// Membuat fungsi login yang akan digunakan sebagai callback pada authRouter
+const userModel = require('../models/users.model')
 exports.login = (req,res) => {
   // Deklarasi variabel username dan password melalui destructuring object yang diperoleh dari req.body
   const {username, password} = req.body
@@ -13,6 +13,30 @@ exports.login = (req,res) => {
     return res.json({
       success: false,
       message: 'Wrong username or password'
+    })
+  }
+}
+
+exports.register = async (req, res) => {
+  try{
+    const {fullName, email, password, address, phoneNumber} = req.body
+    const data = userModel.insert({
+      fullName,
+      email,
+      password,
+      address,
+      phoneNumber
+  })
+  return res.json({
+    success: true,
+    message: 'Register Successfully'
+  })
+
+  }catch(err){
+    console.log(err)
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error"
     })
   }
 }

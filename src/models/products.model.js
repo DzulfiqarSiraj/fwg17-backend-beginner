@@ -34,28 +34,28 @@ exports.findAll = async (keyword='', searchBy='', sortBy='', order='', range = '
   return rows
 };
 
-// const findAll = async (keyword='',searchBy='',range='',orderBy='id',order) => {
-//   const columnSearch = searchBy === '' ? '' : searchBy === 'category'? `WHERE "c"."name"`:`WHERE "p"."${searchBy}"`
-//   const columnOrder = orderBy === 'category'? `ORDER BY "c"."name"`:`ORDER BY "p"."${orderBy}"`
-//   const allowedOrder = ['asc','desc']
-//   const allowedRange= 
-//   range == '' ? '' :
-//   searchBy == 'basePrice' && range === 'higher'? '>' :
-//   searchBy == 'basePrice' && range === 'lower'? '<' :
-//   searchBy == 'basePrice' && range === 'equal'? '=': 'ILIKE'
+const findAll = async (keyword='',searchBy='',range='',orderBy='id',order) => {
+  const columnSearch = searchBy === '' ? '' : searchBy === 'category'? `WHERE "c"."name"`:`WHERE "p"."${searchBy}"`
+  const columnOrder = orderBy === 'category'? `ORDER BY "c"."name"`:`ORDER BY "p"."${orderBy}"`
+  const allowedOrder = ['asc','desc']
+  const allowedRange= 
+  range == '' ? '' :
+  searchBy == 'basePrice' && range === 'higher'? '>' :
+  searchBy == 'basePrice' && range === 'lower'? '<' :
+  searchBy == 'basePrice' && range === 'equal'? '=': 'ILIKE'
 
-//   const sql = `
-//   SELECT "p"."id", "p"."name" "name", "c"."name" "category", "p"."basePrice", "p"."createdAt", "p"."updatedAt"
-//   FROM "products" "p"
-//   JOIN "productCategories" "pc" ON "pc"."productId"="p"."id"
-//   JOIN "categories" "c" ON "c"."id"="pc"."categoryId"
-//   ${columnSearch} ${allowedRange} $1
-//   ${columnOrder} ${allowedOrder.includes(order)? order: 'asc'}
-//   `
-//   const values = [searchBy === 'basePrice'? keyword : `%${keyword}%`]
-//   const {rows} = await db.query(sql, values)
-//   return rows
-// }
+  const sql = `
+  SELECT "p"."id", "p"."name" "name", "c"."name" "category", "p"."basePrice", "p"."createdAt", "p"."updatedAt"
+  FROM "products" "p"
+  JOIN "productCategories" "pc" ON "pc"."productId"="p"."id"
+  JOIN "categories" "c" ON "c"."id"="pc"."categoryId"
+  ${columnSearch} ${allowedRange} $1
+  ${columnOrder} ${allowedOrder.includes(order)? order: 'asc'}
+  `
+  const values = [searchBy === 'basePrice'? keyword : `%${keyword}%`]
+  const {rows} = await db.query(sql, values)
+  return rows
+}
 
 
 exports.findOne = async (id) => {
