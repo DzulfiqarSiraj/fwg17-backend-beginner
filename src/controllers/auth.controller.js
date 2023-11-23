@@ -34,7 +34,8 @@ exports.register = async (req, res) => {
   })
   return res.json({
     success: true,
-    message: 'Register Successfully'
+    message: 'Register Successfully',
+    results: data
   })
 
   }catch(err){

@@ -1,5 +1,7 @@
 const userModel = require('../../models/users.model')
 
+const argon = require("argon2")
+
 exports.getAllUsers = async (req,res) => {
   try{
     const users = await userModel.findAll()
@@ -60,19 +62,29 @@ exports.createUser = async(req, res) => {
 exports.updateUser = async (req, res) => {
   try{
     const {id} = req.params
-    const user = await userModel.update(id, req.body)
-    return res.json({
+    const {password} = req.body
+
+    const hashed = await argon.hash(password)
+    let resReturn = (user) =>{res.json({
       success: true,
       message: 'Update User Successfully',
       results: user
-    })
-  }catch(err){
-    return res.json({
-      success: false,
-      message: 'Update Fail'
-    })
+    })}
+    
+    if(req.body.password !== undefined){
+      const user = await userModel.update(id,{password:hashed})
+      return resReturn(user)
+    } else {
+      const user = await userModel.update(id, req.body)
+      return resReturn(user)
+      }
+    }catch(err){
+      return res.json({
+        success: false,
+        message: 'Update Fail'
+      })
+    }
   }
-}
 
 exports.deleteUser = async (req, res) => {
   try{
