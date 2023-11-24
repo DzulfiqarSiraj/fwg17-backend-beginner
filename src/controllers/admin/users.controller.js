@@ -75,19 +75,19 @@ exports.updateUser = async (req, res) => {
     const {password} = req.body
     const hashed = await argon.hash(password)
     user = await userModel.update(id, {password: hashed})
-      return res.json({
-        success: true,
-        message: 'Update User Successfully',
-        results: user
-      })
+    return res.json({
+      success: true,
+      message: 'Update User Successfully',
+      results: user
+    })
 
-    }catch(err){
-      return res.json({
-        success: false,
-        message: 'Update Fail'
-      })
-    }
+  }catch(err){
+    return res.json({
+      success: false,
+      message: 'Update Fail'
+    })
   }
+}
 
 exports.deleteUser = async (req, res) => {
   try{
