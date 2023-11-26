@@ -62,25 +62,19 @@ exports.createUser = async(req, res) => {
 exports.updateUser = async (req, res) => {
   try{
     const {id} = req.params
-    let user;
+    const data = {
+      ...req.body
+    }
 
-    if(!req.body.password){
-      user = await userModel.update(id, req.body)
+    if(req.body.password){
+      data.password = await argon.hash(req.body.password)
+      user = await userModel.update(id, data)
       return res.json({
         success: true,
         message: 'Update User Successfully',
         results: user
       })
     }
-    const {password} = req.body
-    const hashed = await argon.hash(password)
-    user = await userModel.update(id, {password: hashed})
-    return res.json({
-      success: true,
-      message: 'Update User Successfully',
-      results: user
-    })
-
   }catch(err){
     return res.json({
       success: false,
