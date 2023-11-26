@@ -2,8 +2,7 @@ const productModel = require('../../models/products.model')
 
 exports.getAllProducts = async (req, res) => {
   try{
-    const {search, searchBy, sortBy, order, range, } = req.query
-    const products = await productModel.findAll(search,searchBy,sortBy,order,range)
+    const products = await productModel.findAll()
     return res.json({
       success: true,
       message: 'List All Products',
@@ -58,6 +57,7 @@ exports.updateProduct = async (req, res) => {
   try{
     const {id} = req.params
     if(req.file){
+      console.log(req.file)
       req.body.image = req.file.filename
     }
     const product = await productModel.update(id, req.body)

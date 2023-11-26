@@ -1,15 +1,14 @@
 const productRouter = require('express').Router()
 
-const multer = require('multer')
 
 const productController = require('../../controllers/admin/products.controller')
 
-const upload = multer({dest: 'uploads/'})
+const uploadMiddleware = require('../../middlewares/upload.middleware')
 
 productRouter.get('/',productController.getAllProducts);
 productRouter.get('/:id', productController.getDetailProduct)
 productRouter.post('/',productController.createProduct);
-productRouter.patch('/:id',upload.single('image'),productController.updateProduct);
+productRouter.patch('/:id',uploadMiddleware('products').single('image'),productController.updateProduct);
 productRouter.delete('/:id',productController.deleteProduct);
 
 module.exports = productRouter
