@@ -1,5 +1,6 @@
 const productModel = require('../../models/products.model')
 
+
 exports.getAllProducts = async (req, res) => {
   try{
     const products = await productModel.findAll()
@@ -57,7 +58,6 @@ exports.updateProduct = async (req, res) => {
   try{
     const {id} = req.params
     if(req.file){
-      console.log(req.file)
       req.body.image = req.file.filename
     }
     const product = await productModel.update(id, req.body)
@@ -66,7 +66,6 @@ exports.updateProduct = async (req, res) => {
       message: 'Update Product Successfully',
       results: product
     })
-    console.log(req.file.filename)
   } catch(err){
     return res.json({
       success: false,

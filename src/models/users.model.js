@@ -10,7 +10,7 @@ exports.findAll = async () => {
 
 exports.findOne = async (id) => {
   const sql = `
-  SELECT "id","fullName","email","address","role","createdAt","updatedAt"
+  SELECT "id","fullName","email","address","role","pictures","createdAt","updatedAt"
   FROM "users"
   WHERE "id" = $1`
   const values = [id]

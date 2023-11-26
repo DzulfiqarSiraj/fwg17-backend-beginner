@@ -43,6 +43,9 @@ exports.getDetailUser = async (req,res) => {
 
 exports.createUser = async(req, res) => {
   try{
+    if(req.body.password){
+      req.body.password = await argon.hash(req.body.password)
+    }
     const user = await userModel.insert(req.body)
   
     return res.json({
@@ -62,19 +65,24 @@ exports.createUser = async(req, res) => {
 exports.updateUser = async (req, res) => {
   try{
     const {id} = req.params
+
     const data = {
-      ...req.body
+      ...req.body,
+    }
+
+    if(req.file){
+      data.pictures = req.file.filename
     }
 
     if(req.body.password){
       data.password = await argon.hash(req.body.password)
-      user = await userModel.update(id, data)
-      return res.json({
-        success: true,
-        message: 'Update User Successfully',
-        results: user
-      })
     }
+    user = await userModel.update(id, data)
+    return res.json({
+      success: true,
+      message: 'Update User Successfully',
+      results: user
+    })
   }catch(err){
     return res.json({
       success: false,
