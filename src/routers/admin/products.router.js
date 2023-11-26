@@ -7,7 +7,7 @@ const uploadMiddleware = require('../../middlewares/upload.middleware')
 
 productRouter.get('/',productController.getAllProducts);
 productRouter.get('/:id', productController.getDetailProduct)
-productRouter.post('/',productController.createProduct);
+productRouter.post('/',uploadMiddleware('products').single('image'),productController.createProduct);
 productRouter.patch('/:id',uploadMiddleware('products').single('image'),productController.updateProduct);
 productRouter.delete('/:id',productController.deleteProduct);
 

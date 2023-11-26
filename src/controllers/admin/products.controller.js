@@ -40,12 +40,21 @@ exports.getDetailProduct = async(req, res) => {
 
 exports.createProduct = async(req, res) => {
   try{
-    const product = await productModel.insert(req.body)
+    const data = {
+      ...req.body,
+    }
+
+    if(req.file){
+      data.image = req.file.filename
+    }
+
+    const product = await productModel.insert(data)
     return res.json({
       success: true,
       message: "Create Product Successfully",
       result: product
     })
+    
   }catch(err){
     return res.status(404).json({
       success: false,

@@ -2,11 +2,16 @@ const db = require('../lib/db.lib')
 
 exports.findAll = async () => {
   const sql = `
-  SELECT "p"."id", "p"."name", "c"."name" "category", "p"."basePrice", "p"."createdAt","p"."updatedAt"
+  SELECT "p"."id", "p"."name", "c"."name" "category", "p"."basePrice", "p"."image", "p"."createdAt","p"."updatedAt"
   FROM "products" "p"
-  JOIN "productCategories" "pc" ON "pc"."productId"="p"."id"
-  JOIN "categories" "c" ON "c"."id"="pc"."categoryId"
+  LEFT JOIN "productCategories" "pc" ON "pc"."productId"="p"."id"
+  LEFT JOIN "categories" "c" ON "c"."id"="pc"."categoryId"
+  ORDER BY "p"."id" ASC
   `
+  // const sql = `
+  // SELECT *
+  // FROM "products"
+  // `
   const values = []
   const {rows} = await db.query(sql,values)
   return rows
