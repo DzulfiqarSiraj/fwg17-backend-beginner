@@ -43,10 +43,19 @@ exports.getDetailUser = async (req,res) => {
 
 exports.createUser = async(req, res) => {
   try{
-    if(req.body.password){
-      req.body.password = await argon.hash(req.body.password)
+    const data = {
+      ...req.body,
     }
-    const user = await userModel.insert(req.body)
+    
+    if(data.password){
+      data.password = await argon.hash(data.password)
+    }
+    
+    if(req.file){
+      data.pictures = req.file.filename
+    }
+    const user = await userModel.insert(data)
+    console.log(data)
   
     return res.json({
     success: true,

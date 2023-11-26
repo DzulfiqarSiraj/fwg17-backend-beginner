@@ -2,7 +2,9 @@ const db = require('../lib/db.lib')
 
 exports.findAll = async () => {
   const sql = `SELECT *
-  FROM "users"`
+  FROM "users"
+  ORDER BY "id" ASC
+  `
   const values = []
   const {rows} = await db.query(sql, values)
   return rows
@@ -36,7 +38,7 @@ exports.insert = async (data) => {
   ($1,$2,$3,$4,$5,$6,$7)
   RETURNING *
   `
-  const values = [data.fullName,data.email,data.password,data.address,data.phoneNumber,data.role,data.picture]
+  const values = [data.fullName,data.email,data.password,data.address,data.phoneNumber,data.role,data.pictures]
   const {rows} = await db.query(sql, values)
   return rows[0]
 }
