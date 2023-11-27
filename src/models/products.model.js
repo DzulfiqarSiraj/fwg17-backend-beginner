@@ -1,44 +1,45 @@
 const db = require('../lib/db.lib')
 
-exports.findAll = async () => {
+exports.findAll = async (keyword='',filterBy='name',sortBy='id',order='asc',page=1) => {
+  const limit = 5
+  const offset = (page-1) * limit
   const sql = `
-  SELECT "p"."id", "p"."name", "c"."name" "category", "p"."basePrice", "p"."image", "p"."createdAt","p"."updatedAt"
+  SELECT "p"."id", "p"."name", "c"."name" "category", "p"."basePrice", "p"."image", "p"."description", "p"."createdAt","p"."updatedAt"
   FROM "products" "p"
   LEFT JOIN "productCategories" "pc" ON "pc"."productId"="p"."id"
   LEFT JOIN "categories" "c" ON "c"."id"="pc"."categoryId"
-  ORDER BY "p"."id" ASC
+  WHERE ${filterBy == 'category'? `"c"."name"` : `"p"."${filterBy}"`} ILIKE $1
+  ORDER BY ${sortBy == 'category' ? `"c"."name"` : `"p"."${sortBy}"`} ${order}
+  LIMIT ${limit} OFFSET ${offset}
   `
-  // const sql = `
-  // SELECT *
-  // FROM "products"
-  // `
-  const values = []
+  const values = [`%${keyword}%`]
   const {rows} = await db.query(sql,values)
   return rows
 }
 
-// exports.findAll = async (keyword='',searchBy='',range='',orderBy='id',order) => {
-//   const columnSearch = searchBy === '' ? '' : searchBy === 'category'? `WHERE "c"."name"`:`WHERE "p"."${searchBy}"`
-//   const columnOrder = orderBy === 'category'? `ORDER BY "c"."name"`:`ORDER BY "p"."${orderBy}"`
-//   const allowedOrder = ['asc','desc']
-//   const allowedRange= 
-//   range == '' ? '' :
-//   searchBy == 'basePrice' && range === 'higher'? '>' :
-//   searchBy == 'basePrice' && range === 'lower'? '<' :
-//   searchBy == 'basePrice' && range === 'equal'? '=': 'ILIKE'
-
-//   const sql = `
-//   SELECT "p"."id", "p"."name" "name", "c"."name" "category", "p"."basePrice", "p"."createdAt", "p"."updatedAt"
-//   FROM "products" "p"
-//   JOIN "productCategories" "pc" ON "pc"."productId"="p"."id"
-//   JOIN "categories" "c" ON "c"."id"="pc"."categoryId"
-//   ${columnSearch} ${allowedRange} $1
-//   ${columnOrder} ${allowedOrder.includes(order)? order: 'asc'}
-//   `
-//   const values = [searchBy === 'basePrice'? keyword : `%${keyword}%`]
-//   const {rows} = await db.query(sql, values)
-//   return rows
-// }
+exports.findAllByIdOrBasePrice = async (keyword='0',filterBy='basePrice', range='higher',sortBy='name',order='asc',page=1) => {
+  const limit = 5
+  const offset = (page-1) * limit
+  const allowedRange = {
+    higher: '>',
+    lower: '<',
+    equal: '='
+  }
+  const sql = `
+  SELECT "p"."id", "p"."name", "c"."name" "category", "p"."basePrice", "p"."image", "p"."description", "p"."createdAt","p"."updatedAt"
+  FROM "products" "p"
+  LEFT JOIN "productCategories" "pc" ON "pc"."productId"="p"."id"
+  LEFT JOIN "categories" "c" ON "c"."id"="pc"."categoryId"
+  WHERE "p"."${filterBy}" ${allowedRange[range]} $1
+  ORDER BY ${sortBy === 'category'? `"c"."name"` : `"p"."${sortBy}"`} ${order}
+  LIMIT ${limit} OFFSET ${offset}
+  `
+  const values = [keyword]
+  console.log(values)
+  console.log(sql)
+  const {rows} = await db.query(sql, values)
+  return rows
+}
 
 
 exports.findOne = async (id) => {
@@ -51,6 +52,38 @@ exports.findOne = async (id) => {
   const {rows} = await db.query(sql, values)
   return rows[0]
 };
+
+exports.countAll = async (keyword='')=>{
+  const sql = `
+  SELECT COUNT("p"."id") as "counts"
+  FROM "products" "p"
+  LEFT JOIN "productCategories" "pc" ON "pc"."productId"="p"."id"
+  LEFT JOIN "categories" "c" ON "c"."id"="pc"."categoryId"
+  WHERE "p"."name" ILIKE $1
+  `
+  const values = [`%${keyword}%`]
+  const {rows} = await db.query(sql, values)
+  return rows[0].counts
+}
+
+exports.countAllbyBasePrice = async (keyword='',range='higher')=>{
+  const allowedRange = {
+    higher: '>',
+    lower: '<',
+    equal: '='
+  }
+  const sql = `
+  SELECT COUNT("p"."id") as "counts"
+  FROM "products" "p"
+  LEFT JOIN "productCategories" "pc" ON "pc"."productId"="p"."id"
+  LEFT JOIN "categories" "c" ON "c"."id"="pc"."categoryId"
+  WHERE "p"."basePrice" ${allowedRange[range]} $1
+  `
+  const values = [keyword]
+  const {rows} = await db.query(sql, values)
+  return rows[0].counts
+}
+
 
 exports.insert = async (data) => {
   const sql = `
