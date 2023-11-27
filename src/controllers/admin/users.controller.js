@@ -1,6 +1,7 @@
 const userModel = require('../../models/users.model')
-
 const argon = require("argon2")
+const fsPromises = require('fs/promises')
+const path = require('path')
 
 exports.getAllUsers = async (req,res) => {
   try{
@@ -43,25 +44,38 @@ exports.getDetailUser = async (req,res) => {
 
 exports.createUser = async(req, res) => {
   try{
-    const data = {
-      ...req.body,
+    if(req.body.password){
+      req.body.password = await argon.hash(req.body.password)
     }
-    
-    if(data.password){
-      data.password = await argon.hash(data.password)
-    }
-    
+        
     if(req.file){
-      data.pictures = req.file.filename
+      req.body.pictures = req.file.filename
     }
-    const user = await userModel.insert(data)
-    console.log(data)
-  
-    return res.json({
-    success: true,
-    message: 'Create User Successfully',
-    results: user
-  })
+
+    const user = await userModel.insert(req.body)
+
+    if(req.file){
+      const extension = {
+        'image/png' : '.png',
+        'image/jpg' : '.jpg',
+        'image/jpeg' : '.jpeg',
+      }
+
+      const uploadLocation = path.join(global.path,'uploads','users')
+      const fileLocation = path.join(uploadLocation, req.file.filename)
+      const filename = `${user.id}${extension[req.file.mimetype]}`
+      const newLocation = path.join(uploadLocation, filename)
+
+      await fsPromises.rename(fileLocation, newLocation)
+      const renamedUser = await userModel.update(user.id, {
+        pictures: filename
+      })
+      return res.json({
+        success: true,
+        message: 'Create User Successfully',
+        results: renamedUser
+      })
+    }
   }catch(err){
     return res.status(404).json({
       success: false,
@@ -74,19 +88,15 @@ exports.createUser = async(req, res) => {
 exports.updateUser = async (req, res) => {
   try{
     const {id} = req.params
-
-    const data = {
-      ...req.body,
-    }
-
     if(req.file){
-      data.pictures = req.file.filename
+      req.body.pictures = req.file.filename
     }
 
     if(req.body.password){
-      data.password = await argon.hash(req.body.password)
+      req.body.password = await argon.hash(req.body.password)
     }
-    user = await userModel.update(id, data)
+    
+    const user = await userModel.update(id, req.body)
     return res.json({
       success: true,
       message: 'Update User Successfully',
