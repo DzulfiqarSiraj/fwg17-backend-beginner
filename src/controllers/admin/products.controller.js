@@ -1,4 +1,6 @@
 const productModel = require('../../models/products.model')
+const fsPromises = require('fs/promises')
+const path = require('path')
 
 
 exports.getAllProducts = async (req, res) => {
@@ -40,15 +42,35 @@ exports.getDetailProduct = async(req, res) => {
 
 exports.createProduct = async(req, res) => {
   try{
-    const data = {
-      ...req.body,
+    if(req.file){
+      req.body.image = req.file.filename
     }
+
+    const product = await productModel.insert(req.body)
 
     if(req.file){
-      data.image = req.file.filename
+      const extension = {
+        'image/png' : '.png',
+        'image/jpg' : '.jpg',
+        'image/jpeg' : '.jpeg',
+      }
+  
+      const uploadLocation = path.join(global.path,'uploads','products')
+      const fileLocation = path.join(uploadLocation,req.file.filename)
+      const filename = `${product.id}${extension[req.file.mimetype]}`
+      const newLocation = path.join(uploadLocation, filename)
+      
+      await fsPromises.rename(fileLocation, newLocation)
+      const renamedProduct = await productModel.update(product.id, {
+        image: filename
+      })
+      return res.json({
+        success: true,
+        message: "Create Product Successfully",
+        result: renamedProduct
+      })
     }
 
-    const product = await productModel.insert(data)
     return res.json({
       success: true,
       message: "Create Product Successfully",

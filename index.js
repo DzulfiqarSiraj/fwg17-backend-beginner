@@ -2,6 +2,8 @@ require('dotenv').config({
   path: './.env'
 })
 
+global.path = __dirname
+
 
 const express = require('express');
 const cors = require('cors');
