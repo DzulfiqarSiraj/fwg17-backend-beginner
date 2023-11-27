@@ -1,6 +1,8 @@
 const productModel = require('../../models/products.model')
 const fsPromises = require('fs/promises')
 const path = require('path')
+const uploadMiddleware = require('../../middlewares/upload.middleware')
+const upload = uploadMiddleware('products').single('image')
 
 
 exports.getAllProducts = async (req, res) => {
@@ -42,41 +44,48 @@ exports.getDetailProduct = async(req, res) => {
 
 exports.createProduct = async(req, res) => {
   try{
-    if(req.file){
-      req.body.image = req.file.filename
-    }
-
-    const product = await productModel.insert(req.body)
-
-    if(req.file){
-      const extension = {
-        'image/png' : '.png',
-        'image/jpg' : '.jpg',
-        'image/jpeg' : '.jpeg',
+    upload(req, res, async (err)=>{
+      if(err){
+        return res.status(400).json({
+          success: false,
+          message: err.message
+        })
       }
-  
-      const uploadLocation = path.join(global.path,'uploads','products')
-      const fileLocation = path.join(uploadLocation,req.file.filename)
-      const filename = `${product.id}${extension[req.file.mimetype]}`
-      const newLocation = path.join(uploadLocation, filename)
-      
-      await fsPromises.rename(fileLocation, newLocation)
-      const renamedProduct = await productModel.update(product.id, {
-        image: filename
-      })
+      if(req.file){
+        req.body.image = req.file.filename
+      }
+
+      const product = await productModel.insert(req.body)
+
+      if(req.file){
+        const extension = {
+          'image/png' : '.png',
+          'image/jpg' : '.jpg',
+          'image/jpeg' : '.jpeg',
+        }
+    
+        const uploadLocation = path.join(global.path,'uploads','products')
+        const fileLocation = path.join(uploadLocation,req.file.filename)
+        const filename = `${product.id}${extension[req.file.mimetype]}`
+        const newLocation = path.join(uploadLocation, filename)
+        
+        await fsPromises.rename(fileLocation, newLocation)
+        const renamedProduct = await productModel.update(product.id, {
+          image: filename
+        })
+        return res.json({
+          success: true,
+          message: "Create Product Successfully",
+          result: renamedProduct
+        })
+      }
+
       return res.json({
         success: true,
         message: "Create Product Successfully",
-        result: renamedProduct
+        result: product
       })
-    }
-
-    return res.json({
-      success: true,
-      message: "Create Product Successfully",
-      result: product
     })
-    
   }catch(err){
     return res.status(404).json({
       success: false,
