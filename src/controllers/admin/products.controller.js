@@ -43,20 +43,18 @@ exports.getDetailProduct = async(req, res) => {
 }
 
 exports.createProduct = async(req, res) => {
-  try{
-    upload(req, res, async (err)=>{
+  upload(req, res, async (err)=>{
+    try{
       if(err){
-        return res.status(400).json({
-          success: false,
-          message: err.message
-        })
+        throw err
       }
+
       if(req.file){
         req.body.image = req.file.filename
       }
-
+  
       const product = await productModel.insert(req.body)
-
+  
       if(req.file){
         const extension = {
           'image/png' : '.png',
@@ -79,39 +77,66 @@ exports.createProduct = async(req, res) => {
           result: renamedProduct
         })
       }
-
-      return res.json({
-        success: true,
-        message: "Create Product Successfully",
-        result: product
+  
+    }catch(err){
+      if(err.message === 'File too large'){
+        return res.status(400).json({
+          success: false,
+          message: err.message
+        })
+      }
+      if(err.message === 'extension_issue'){
+        return res.status(400).json({
+          success: false,
+          message: 'Unsupported File Extension'
+        })
+      }
+      console.log(err)
+      return res.status(500).json({
+        success: false,
+        message: 'Internal Server Error'
       })
-    })
-  }catch(err){
-    return res.status(404).json({
-      success: false,
-      message: 'Error'
-    })
-  }
+    }
+  })
 }
 
 exports.updateProduct = async (req, res) => {
-  try{
-    const {id} = req.params
-    if(req.file){
-      req.body.image = req.file.filename
+  upload(req, res, async (err) =>{
+    try{
+      if(err){
+        throw err
+      }
+
+      const {id} = req.params
+      if(req.file){
+        req.body.image = req.file.filename
+      }
+      const product = await productModel.update(id, req.body)
+      return res.json({
+        success: true,
+        message: 'Update Product Successfully',
+        results: product
+      })
+    } catch(err){
+      if(err.message === 'File too large'){
+        return res.status(400).json({
+          success: false,
+          message: err.message
+        })
+      }
+      if(err.message === 'extension_issue'){
+        return res.status(400).json({
+          success: false,
+          message: 'Unsupported File Extension'
+        })
+      }
+      console.log(err)
+      return res.status(500).json({
+        success: false,
+        message: 'Internal Server Error'
+      })
     }
-    const product = await productModel.update(id, req.body)
-    return res.json({
-      success: true,
-      message: 'Update Product Successfully',
-      results: product
-    })
-  } catch(err){
-    return res.json({
-      success: false,
-      message: 'Update Fail',
-    })
-  }
+  })
 }
 
 exports.deleteProduct = async (req,res) => {

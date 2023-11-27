@@ -24,9 +24,10 @@ const storage = (dest, filename) => multer.diskStorage({
 const fileFilter = (req, file, cb) => {
   const allowedExt = Object.keys(extension)
   if(!allowedExt.includes(file.mimetype)){
-    return cb({message: 'error'}, false)
+    cb(new Error('extension_issue'), false)
+  }else{
+    cb(null, true)
   }
-  cb(null, true)
 }
 
 const maxSize = 1 * 1024 * 1024
