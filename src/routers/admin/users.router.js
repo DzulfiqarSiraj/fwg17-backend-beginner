@@ -6,8 +6,8 @@ const uploadMiddleware = require('../../middlewares/upload.middleware')
 
 userRouter.get('/', userController.getAllUsers)
 userRouter.get('/:id', userController.getDetailUser)
-userRouter.post('/', uploadMiddleware('users').single('pictures'), userController.createUser)
-userRouter.patch('/:id', uploadMiddleware('users').single('pictures'), userController.updateUser)
+userRouter.post('/', userController.createUser)
+userRouter.patch('/:id', userController.updateUser)
 userRouter.delete('/:id', userController.deleteUser)
 
 

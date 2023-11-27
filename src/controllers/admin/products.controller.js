@@ -111,6 +111,7 @@ exports.updateProduct = async (req, res) => {
       if(req.file){
         req.body.image = req.file.filename
       }
+      
       const product = await productModel.update(id, req.body)
       return res.json({
         success: true,
