@@ -75,7 +75,8 @@ exports.register = async (req, res) => {
       email,
       password: hashed,
       address,
-      phoneNumber
+      phoneNumber,
+      role: 'Customer'
   })
   return res.json({
     success: true,
