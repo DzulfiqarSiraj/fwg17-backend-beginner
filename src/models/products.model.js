@@ -1,5 +1,16 @@
 const db = require('../lib/db.lib')
 
+exports.findAllOrigin = async ()=>{
+  const sql = `
+  SELECT *
+  FROM "products"
+  ORDER BY "id" ASC
+  `
+  const values = []
+  const {rows} = await db.query(sql, values)
+  return rows
+}
+
 exports.findAll = async (keyword='',filterBy='name',sortBy='id',order='asc',page=1) => {
   const limit = 5
   const offset = (page-1) * limit
@@ -121,7 +132,7 @@ exports.update = async (id, data) => {
 exports.delete = async (id) => {
   const sql = `
   DELETE FROM "products"
-  WHERE "id"=$1
+  WHERE "id" = $1
   RETURNING *
   `
   const values = [id];
