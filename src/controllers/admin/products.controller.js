@@ -76,6 +76,16 @@ exports.createProduct = async(req, res) => {
         throw err
       }
 
+      if(!req.file){
+        const product = await productModel.insert(req.body)
+        return res.json({
+          success: true,
+          message: "Create Product Successfully",
+          result: product
+        })
+      }
+
+      
       if(req.file){
         req.body.image = req.file.filename
       }
@@ -169,7 +179,7 @@ exports.updateProduct = async (req, res) => {
 
 exports.deleteProduct = async (req,res) => {
   try{
-    const products = await productModel.findAll()
+    const products = await productModel.findAllOrigin()
     const {id} = req.params
     for(let item in products){
       if(String(products[item]['id']) === id){
