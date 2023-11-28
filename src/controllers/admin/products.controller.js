@@ -81,11 +81,11 @@ exports.createProduct = async(req, res) => {
         return res.json({
           success: true,
           message: "Create Product Successfully",
-          result: product
+          results: product
         })
       }
 
-      
+
       if(req.file){
         req.body.image = req.file.filename
       }
@@ -111,7 +111,7 @@ exports.createProduct = async(req, res) => {
         return res.json({
           success: true,
           message: "Create Product Successfully",
-          result: renamedProduct
+          results: renamedProduct
         })
       }
   
@@ -144,7 +144,16 @@ exports.updateProduct = async (req, res) => {
         throw err
       }
 
+      const currentData = await productModel.findOne(Number(req.params.id))
+      if(!currentData){
+        return res.json({
+          success: false,
+          message: 'No Existing Data'
+        })
+      }
+      
       const {id} = req.params
+
       if(req.file){
         req.body.image = req.file.filename
       }
@@ -156,7 +165,7 @@ exports.updateProduct = async (req, res) => {
         results: product
       })
     } catch(err){
-      if(err.message === 'File too large'){
+      if(err.message === 'File too large. Max. Upload Size 1MB'){
         return res.status(400).json({
           success: false,
           message: err.message
@@ -165,7 +174,7 @@ exports.updateProduct = async (req, res) => {
       if(err.message === 'extension_issue'){
         return res.status(400).json({
           success: false,
-          message: 'Unsupported File Extension'
+          message: 'Unsupported File Extension. File Extension Should Be(PNG/JPG/JPEG)'
         })
       }
       console.log(err)
