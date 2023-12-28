@@ -12,10 +12,10 @@ exports.findAllOrigin = async ()=>{
 }
 
 exports.findAll = async (keyword='',filterBy='name',sortBy='id',order='asc',page=1) => {
-  const limit = 5
+  const limit = 6
   const offset = (page-1) * limit
   const sql = `
-  SELECT "p"."id", "p"."name", "c"."name" "category", "p"."basePrice", "p"."image", "p"."description", "p"."createdAt","p"."updatedAt"
+  SELECT "p"."id", "p"."name", "c"."name" "category", "p"."basePrice", "p"."image", "p"."description", "p"."isBestSeller", "p"."createdAt","p"."updatedAt"
   FROM "products" "p"
   LEFT JOIN "productCategories" "pc" ON "pc"."productId"="p"."id"
   LEFT JOIN "categories" "c" ON "c"."id"="pc"."categoryId"
