@@ -160,11 +160,12 @@ exports.updateProduct = async (req, res) => {
       const {id} = req.params
 
       if(req.file){
+        const currentFilePath = path.join(global.path,'uploads','products',currentData.image)
+        await fsPromises.unlink(currentFilePath)
         req.body.image = req.file.filename
       }
       
       let product = await productModel.update(id, req.body)
-
       if(req.file){
         const uploadLocation = path.join(global.path,'uploads','products')
         const fileLocation = path.join(uploadLocation, req.file.filename)
