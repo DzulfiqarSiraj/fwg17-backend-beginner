@@ -91,29 +91,34 @@ exports.createProduct = async(req, res) => {
       }
   
       const product = await productModel.insert(req.body)
+      return res.json({
+        success: true,
+        message: "Create Product Successfully",
+        results: product
+      })
   
-      if(req.file){
-        const extension = {
-          'image/png' : '.png',
-          'image/jpg' : '.jpg',
-          'image/jpeg' : '.jpeg',
-        }
+      // if(req.file){
+      //   const extension = {
+      //     'image/png' : '.png',
+      //     'image/jpg' : '.jpg',
+      //     'image/jpeg' : '.jpeg',
+      //   }
     
-        const uploadLocation = path.join(global.path,'uploads','products')
-        const fileLocation = path.join(uploadLocation,req.file.filename)
-        const filename = `${product.id}${extension[req.file.mimetype]}`
-        const newLocation = path.join(uploadLocation, filename)
+      //   const uploadLocation = path.join(global.path,'uploads','products')
+      //   const fileLocation = path.join(uploadLocation,req.file.filename)
+      //   const filename = `${product.id}${extension[req.file.mimetype]}`
+      //   const newLocation = path.join(uploadLocation, filename)
         
-        await fsPromises.rename(fileLocation, newLocation)
-        const renamedProduct = await productModel.update(product.id, {
-          image: filename
-        })
-        return res.json({
-          success: true,
-          message: "Create Product Successfully",
-          results: renamedProduct
-        })
-      }
+      //   await fsPromises.rename(fileLocation, newLocation)
+      //   const renamedProduct = await productModel.update(product.id, {
+      //     image: filename
+      //   })
+      //   return res.json({
+      //     success: true,
+      //     message: "Create Product Successfully",
+      //     results: renamedProduct
+      //   })
+      // }
   
     }catch(err){
       if(err.message === 'File too large'){
@@ -138,18 +143,18 @@ exports.createProduct = async(req, res) => {
 }
 
 exports.updateProduct = async (req, res) => {
+  const currentData = await productModel.findOne(Number(req.params.id))
+  if(!currentData){
+    return res.json({
+      success: false,
+      message: 'No Existing Data'
+    })
+  }
+
   upload(req, res, async (err) =>{
     try{
       if(err){
         throw err
-      }
-
-      const currentData = await productModel.findOne(Number(req.params.id))
-      if(!currentData){
-        return res.json({
-          success: false,
-          message: 'No Existing Data'
-        })
       }
       
       const {id} = req.params
@@ -158,7 +163,17 @@ exports.updateProduct = async (req, res) => {
         req.body.image = req.file.filename
       }
       
-      const product = await productModel.update(id, req.body)
+      let product = await productModel.update(id, req.body)
+
+      if(req.file){
+        const uploadLocation = path.join(global.path,'uploads','products')
+        const fileLocation = path.join(uploadLocation, req.file.filename)
+        const filename = `${product.name}_${req.file.filename}`
+        const newLocation = path.join(uploadLocation, filename)
+  
+        await fsPromises.rename(fileLocation, newLocation)
+        product = await productModel.update(product.id, {image: filename})
+      }
       return res.json({
         success: true,
         message: 'Update Product Successfully',
