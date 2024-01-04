@@ -8,5 +8,5 @@ const authController = require('../controllers/auth.controller')
 authRouter.post('/login', authController.login)
 authRouter.post('/register', authController.register)
 
-// Mengekspor authRouter agar dapat digunakan oleh
+
 module.exports = authRouter

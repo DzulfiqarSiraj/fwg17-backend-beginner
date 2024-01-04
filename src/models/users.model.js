@@ -12,7 +12,7 @@ exports.findAll = async () => {
 
 exports.findOne = async (id) => {
   const sql = `
-  SELECT "id","fullName","email","address","role","pictures","createdAt","updatedAt"
+  SELECT "id","fullName","email","address","role","phoneNumber","password","pictures","createdAt","updatedAt"
   FROM "users"
   WHERE "id" = $1
   `
@@ -50,8 +50,10 @@ exports.update = async (id, data) => {
 
   values.push(id)
   for(let item in data){
-    values.push(data[item])
-    column.push(`"${item}"=$${values.length}`)
+    if(data[item]){
+      values.push(data[item])
+      column.push(`"${item}"=$${values.length}`)
+    }
   }
 
   const sql = `

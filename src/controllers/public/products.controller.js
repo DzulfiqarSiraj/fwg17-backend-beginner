@@ -160,13 +160,16 @@ exports.updateProduct = async (req, res) => {
       const {id} = req.params
 
       if(req.file){
-        const savedImage = await productModel.findOne(Number(req.params.id))
-        if(savedImage.image){
-          const currentFilePath = path.join(global.path,'uploads','products',currentData.image)
-          fsPromises.access(currentFilePath, fsPromises.constants.R_OK).then(()=>{
-            fsPromises.rm(currentFilePath)
-          }).catch(() => {})
-        }
+        const currentFilePath = path.join(global.path,'uploads','products',currentData.image)
+        console.log(currentFilePath)
+        await fsPromises.rm(currentFilePath, {force: true}, (err) =>{
+          if(err){
+            console.log(err.message)
+            return
+          } else {
+            console.log('File deleted successfully')
+          }
+        })
         req.body.image = req.file.filename
       }
       

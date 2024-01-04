@@ -16,6 +16,7 @@ app.use(morgan('dev'));
 app.use(cors())
 app.use('/', require('./src/routers'))
 app.use('/uploads/products',express.static('uploads/products'))
+app.use('/uploads/users',express.static('uploads/users'))
 
 
 app.get('/', (req, res) => {

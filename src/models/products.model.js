@@ -1,25 +1,13 @@
 const db = require('../lib/db.lib')
 
-exports.findAllOrigin = async ()=>{
-  const sql = `
-  SELECT *
-  FROM "products"
-  ORDER BY "id" ASC
-  `
-  const values = []
-  const {rows} = await db.query(sql, values)
-  return rows
-}
-
-exports.findAll = async (keyword='',filterBy='name',sortBy='id',order='asc',page=1) => {
-  const limit = 6
+exports.findAll = async (keyword='',filterBy='name',sortBy='id',order='asc',page=1, limit, bestSeller) => {
   const offset = (page-1) * limit
   const sql = `
-  SELECT "p"."id", "p"."name", "c"."name" "category", "p"."basePrice", "p"."image", "p"."description", "p"."isBestSeller", "p"."createdAt","p"."updatedAt"
+  SELECT "p"."id", "p"."name", "c"."name" "category", "p"."basePrice", "p"."image", "p"."description","p"."discount", "p"."isBestSeller", "p"."createdAt","p"."updatedAt"
   FROM "products" "p"
   LEFT JOIN "productCategories" "pc" ON "pc"."productId"="p"."id"
   LEFT JOIN "categories" "c" ON "c"."id"="pc"."categoryId"
-  WHERE ${filterBy == 'category'? `"c"."name"` : `"p"."${filterBy}"`} ILIKE $1
+  WHERE ${filterBy == 'category'? `"c"."name"` : `"p"."${filterBy}"`} ILIKE $1 ${bestSeller? `AND "p"."isBestSeller" = ${bestSeller} `: '' }
   ORDER BY ${sortBy == 'category' ? `"c"."name"` : `"p"."${sortBy}"`} ${order}
   LIMIT ${limit} OFFSET ${offset}
   `
@@ -64,13 +52,13 @@ exports.findOne = async (id) => {
   return rows[0]
 };
 
-exports.countAll = async (keyword='')=>{
+exports.countAll = async (keyword='',filterBy='name',bestSeller)=>{
   const sql = `
   SELECT COUNT("p"."id") as "counts"
   FROM "products" "p"
   LEFT JOIN "productCategories" "pc" ON "pc"."productId"="p"."id"
   LEFT JOIN "categories" "c" ON "c"."id"="pc"."categoryId"
-  WHERE "p"."name" ILIKE $1
+  WHERE ${filterBy == 'category'? `"c"."name"` : `"p"."${filterBy}"`} ILIKE $1 ${bestSeller? `AND "p"."isBestSeller" = ${bestSeller} `: '' }
   `
   const values = [`%${keyword}%`]
   const {rows} = await db.query(sql, values)

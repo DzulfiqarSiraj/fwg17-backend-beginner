@@ -12,11 +12,7 @@ const storage = (dest, filename) => multer.diskStorage({
     cb(null, path.join('uploads',dest))
   },
   filename: (req,file,cb) => {
-    if(!filename && req.params.id){
-      filename = req.params.id
-    } else if(!filename){
-      filename = new Date().getTime()
-    }
+    filename = new Date().getTime()
     cb(null,`${filename}${extension[file.mimetype]}`)
   }
 })
