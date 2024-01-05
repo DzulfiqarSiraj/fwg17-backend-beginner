@@ -3,6 +3,7 @@ const uploadMiddleware = require('../middlewares/upload.middleware')
 const fsPromises = require('fs/promises')
 const path = require('path')
 const upload = uploadMiddleware('users').single('pictures')
+const argon = require('argon2')
 
 exports.getProfile = async (req, res) => {
     const {id} = req.user
@@ -35,7 +36,12 @@ exports.updateProfile = async (req, res) => {
                 }
                 req.body.pictures = req.file.filename
             }
-              
+            
+            // password perlu hashing
+            if(req.body.password){
+                req.body.password = await argon.hash(req.body.password)
+            }
+
             let user = await userModel.update(id, req.body)
             if(req.file){
                 const uploadLocation = path.join(global.path,'uploads','users')
