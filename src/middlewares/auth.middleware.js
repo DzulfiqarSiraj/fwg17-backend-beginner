@@ -11,7 +11,7 @@ const authMiddleware = (req, res, next) => {
     req.user = jwt.verify(token, process.env.APP_SECRET || 'secretkey')
     next()
   }catch(err){
-    if(err.message === 'invalid'){
+    if(err.message === 'invalid' || err.message.includes('malformed')){
       return res.status(401).json({
         success: false,
         message: "Invalid Token"
