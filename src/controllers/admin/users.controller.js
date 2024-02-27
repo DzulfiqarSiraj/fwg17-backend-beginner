@@ -10,7 +10,7 @@ exports.getAllUsers = async (req,res) => {
     const users = await userModel.findAll()
     return res.json({
       success: true,
-      message: "List all users",
+      message: "List All Users",
       results: users
     })
   }catch(err){
