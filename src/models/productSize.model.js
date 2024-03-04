@@ -1,12 +1,27 @@
 const db = require('../lib/db.lib')
 
-exports.findAll = async () => {
+exports.findAll = async (keyword='', page = 1, limit) => {
+  const offset = (page-1) * limit
   const sql = `
   SELECT * FROM "productSize"
+  WHERE "size" ILIKE $1
+  ORDER BY "id" ASC
+  LIMIT ${limit} OFFSET ${offset}
   `
-  const values = []
+  const values = [`%${keyword}%`]
   const {rows} = await db.query(sql, values)
   return rows
+}
+
+exports.countAll = async (keyword='') =>{
+  const sql = `
+  SELECT COUNT(*) as counts 
+  FROM "productSize"
+  WHERE "size" ILIKE $1
+  `
+  const values = [`%${keyword}%`]
+  const {rows} = await db.query(sql, values)
+  return rows[0].counts
 }
 
 exports.findOne = async (id) => {

@@ -7,16 +7,53 @@ const upload = uploadMiddleware('users').single('pictures')
 
 exports.getAllUsers = async (req,res) => {
   try{
-    const users = await userModel.findAll()
+    const {keyword, page = 1, limit = 5} = req.query
+  
+  const count = Number(await userModel.countAll(keyword))
+  const totalPage = Math.ceil(count / limit)
+  const nextPage = Number(page) + 1
+  const prevPage = Number(page) - 1
+
+  if(page == 0) {
+    return res.json({
+      success: false,
+      message: 'Bad Request'
+    })
+  }
+  
+  const users = await userModel.findAll(keyword, page, limit)
+  
+  if(users.length === 0) {
     return res.json({
       success: true,
-      message: "List All Users",
+      message: "Users Not Found",
+      pageInfo: {
+        currentPage: Number(page),
+        totalPage,
+        nextPage: nextPage <= totalPage ? nextPage : null,
+        prevPage: prevPage > 0 ? prevPage : null,
+        totalData: count
+      },
       results: users
     })
+  }
+
+  return res.json({
+    success: true,
+    message: "List All Users",
+    pageInfo: {
+      currentPage: Number(page),
+      totalPage,
+      nextPage: nextPage <= totalPage ? nextPage : null,
+      prevPage: prevPage > 0 ? prevPage : null,
+      totalData: count
+    },
+    results: users
+  })
   }catch(err){
     return res.json({
-      success: true,
-      message: "Users Not Found"
+      success: false,
+      message: 'Internal Server Error',
     })
   }
 }
@@ -29,7 +66,7 @@ exports.getDetailUser = async (req,res) => {
     if(user){
       return res.json({
         success: true,
-        message: 'Detail user',
+        message: 'Detail User',
         results: user
       })
     }else{
@@ -38,7 +75,7 @@ exports.getDetailUser = async (req,res) => {
   }catch(err){
     return res.json({
       success: false,
-      message: 'User not found'
+      message: 'User Not Found'
     })
   }
 }
@@ -96,7 +133,6 @@ exports.createUser = async(req, res) => {
           message: 'Unsupported File Extension'
         })
       }
-      console.log(err)
       return res.status(500).json({
         success: false,
         message: 'Internal Server Error'
@@ -141,7 +177,6 @@ exports.updateUser = async (req, res) => {
           message: 'Unsupported File Extension'
         })
       }
-      console.log(err)
       return res.status(500).json({
         success: false,
         message: 'Internal Server Error'
@@ -151,26 +186,19 @@ exports.updateUser = async (req, res) => {
 }
 
 exports.deleteUser = async (req, res) => {
-  try{
-    const users = await userModel.findAll()
-    const {id} = req.params
-    for(let item in users){
-      if(String(users[item]['id']) === id){
-        const user = await userModel.delete(id)
-        return res.json({
-          success: true,
-          message: 'Delete success',
-          results: user
-        })
-      }}
-      return res.json({
-      success: false,
-      message: 'No existing data'
-    })
-  }catch(err){
+  const {id} = req.params
+  const users = await userModel.findOne(id)
+
+  if(!users){
     return res.json({
       success: false,
-      message: 'Internal server error'
+      message: 'No Existing Data'
     })
   }
+
+  return res.json({
+    success: true,
+    message: 'Delete Success',
+    results: users
+  })
 }

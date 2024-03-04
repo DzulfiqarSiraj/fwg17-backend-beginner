@@ -1,62 +1,25 @@
 const productSizeModel = require('../../models/productSize.model')
 
 exports.getAllProductSize = async (req, res) => {
+  const productSize = await productSizeModel.findAll()
   try{
-    const {keyword, page = 1, limit = 5} = req.query
-
-    const count = Number(await productSizeModel.countAll(keyword))
-    const totalPage = Math.ceil(count / limit)
-    const nextPage = Number(page) + 1
-    const prevPage = Number(page) - 1
-
-    if(page == 0) {
-      return res.json({
-        success: false,
-        message: 'Bad Request'
-      })
-    }
-
-    const productSize = await productSizeModel.findAll(keyword, page, limit)
-
-    if(productSize.length === 0) {
-      return res.json({
-        success: true,
-        message: 'Product Size Not Found',
-        pageInfo: {
-          currentPage: Number(page),
-          totalPage,
-          nextPage: nextPage <= totalPage ? nextPage : null,
-          prevPage: prevPage > 0 ? prevPage : null,
-          totalData: count
-        },
-        results: productSize
-      })
-    }
-  
     return res.json({
       success: true,
       message: 'List All Product Size',
-      pageInfo: {
-        currentPage: Number(page),
-        totalPage,
-        nextPage: nextPage <= totalPage ? nextPage : null,
-        prevPage: prevPage > 0 ? prevPage : null,
-        totalData: count
-      },
       results: productSize
     })
   }catch(err){
     return res.json({
       success: false,
-      message: 'Internal Server Error',
+      message: 'Product Size Not Found'
     })
   }
 }
 
 exports.getDetailProductSize = async (req, res) => {
+  const {id} = req.params
+  const productSize = await productSizeModel.findOne(id)
   try{
-    const id = Number(req.params.id)
-    const productSize = await productSizeModel.findOne(id)
     if(productSize){
       return res.json({
         success: true,
@@ -108,20 +71,26 @@ exports.updateProductSize = async (req, res) => {
 }
 
 exports.deleteProductSize = async (req, res) => {
-  const {id} = req.params
-  const productSizes = await productSizeModel.findOne(id)
-
-  if(!productSizes){
+  try{
+    const productSize = await productSizeModel.findAll()
+    const {id} = req.params
+    for(let item in productSize){
+      if(String(productSize[item]['id']) === id){
+        const productsize = await productSizeModel.delete(id)
+        return res.json({
+          success: true,
+          message: 'Delete success',
+          results: productsize
+        })
+      }}
+      return res.json({
+      success: false,
+      message: 'No existing data'
+    })
+  }catch(err){
     return res.json({
       success: false,
-      message: 'No Existing Data'
+      message: 'Internal server error'
     })
   }
-  
-  const productSize = await productSizeModel.delete(id)
-  return res.json({
-    success: true,
-    message: 'Delete Success',
-    results: productSize
-  })
 }

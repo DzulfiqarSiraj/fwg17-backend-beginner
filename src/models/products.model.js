@@ -1,56 +1,17 @@
 const db = require('../lib/db.lib')
 
-exports.findAll = async (keyword='',filterBy='name',sortBy='id',order='asc',page=1, limit, bestSeller) => {
+exports.findAll = async (keyword='', page=1, limit) => {
   const offset = (page-1) * limit
   const sql = `
   SELECT "p"."id", "p"."name", "c"."name" "category", "p"."basePrice", "p"."image", "p"."description","p"."discount", "p"."isBestSeller", "p"."createdAt","p"."updatedAt"
   FROM "products" "p"
   LEFT JOIN "productCategories" "pc" ON "pc"."productId"="p"."id"
   LEFT JOIN "categories" "c" ON "c"."id"="pc"."categoryId"
-  WHERE ${filterBy == 'category'? `"c"."name"` : `"p"."${filterBy}"`} ILIKE $1 ${bestSeller? `AND "p"."isBestSeller" = ${bestSeller} `: '' }
-  ORDER BY ${sortBy == 'category' ? `"c"."name"` : `"p"."${sortBy}"`} ${order}
+  WHERE "p"."name" ILIKE $1
   LIMIT ${limit} OFFSET ${offset}
   `
-//  NEW QUERY
-//  `
-//   SELECT "p".*
-//   FROM "products" "p"
-//   JOIN "productCategories" "pc" ON "pc"."productId"="p"."id"
-//   JOIN "categories" "c" ON "c"."id"="pc"."categoryId"
-//   WHERE "p"."name" ILIKE $1 
-//   ${category && `AND "c"."name" IN (${category.map(data => `'${data}'`).join(',')})`} 
-//   ${basePrice && 'AND "p"."basePrice" BETWEEN 0 AND 60000'}
-//   ${category && `GROUP BY "p"."id", "p"."name" 
-//   HAVING COUNT(DISTINCT "c"."name") = ${category.length}`}
-//   LIMIT ${limit} OFFSET ${offset}
-//   `
-
   const values = [`%${keyword}%`]
   const {rows} = await db.query(sql,values)
-  return rows
-}
-
-exports.findAllByIdOrBasePrice = async (keyword='0',filterBy='basePrice', range='higher',sortBy='name',order='asc',page=1) => {
-  const limit = 5
-  const offset = (page-1) * limit
-  const allowedRange = {
-    higher: '>',
-    lower: '<',
-    equal: '='
-  }
-  const sql = `
-  SELECT "p"."id", "p"."name", "c"."name" "category", "p"."basePrice", "p"."image", "p"."description", "p"."createdAt","p"."updatedAt"
-  FROM "products" "p"
-  LEFT JOIN "productCategories" "pc" ON "pc"."productId"="p"."id"
-  LEFT JOIN "categories" "c" ON "c"."id"="pc"."categoryId"
-  WHERE "p"."${filterBy}" ${allowedRange[range]} $1
-  ORDER BY ${sortBy === 'category'? `"c"."name"` : `"p"."${sortBy}"`} ${order}
-  LIMIT ${limit} OFFSET ${offset}
-  `
-  const values = [keyword]
-  console.log(values)
-  console.log(sql)
-  const {rows} = await db.query(sql, values)
   return rows
 }
 
@@ -103,37 +64,18 @@ exports.findOne = async (id) => {
   return rows[0]
 };
 
-exports.countAll = async (keyword='',filterBy='name',bestSeller)=>{
+exports.countAll = async (keyword='')=>{
   const sql = `
   SELECT COUNT("p"."id") as "counts"
   FROM "products" "p"
   LEFT JOIN "productCategories" "pc" ON "pc"."productId"="p"."id"
   LEFT JOIN "categories" "c" ON "c"."id"="pc"."categoryId"
-  WHERE ${filterBy == 'category'? `"c"."name"` : `"p"."${filterBy}"`} ILIKE $1 ${bestSeller? `AND "p"."isBestSeller" = ${bestSeller} `: '' }
+  WHERE "p"."name" ILIKE $1
   `
   const values = [`%${keyword}%`]
   const {rows} = await db.query(sql, values)
   return rows[0].counts
 }
-
-exports.countAllbyBasePrice = async (keyword='',range='higher')=>{
-  const allowedRange = {
-    higher: '>',
-    lower: '<',
-    equal: '='
-  }
-  const sql = `
-  SELECT COUNT("p"."id") as "counts"
-  FROM "products" "p"
-  LEFT JOIN "productCategories" "pc" ON "pc"."productId"="p"."id"
-  LEFT JOIN "categories" "c" ON "c"."id"="pc"."categoryId"
-  WHERE "p"."basePrice" ${allowedRange[range]} $1
-  `
-  const values = [keyword]
-  const {rows} = await db.query(sql, values)
-  return rows[0].counts
-}
-
 
 exports.insert = async (data) => {
   const sql = `
@@ -166,7 +108,6 @@ exports.update = async (id, data) => {
   const {rows} = await db.query(sql, values)
   return rows[0]
 }
-
 
 exports.delete = async (id) => {
   const sql = `

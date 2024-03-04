@@ -7,30 +7,26 @@ const upload = uploadMiddleware('products').single('image')
 
 exports.getAllProducts = async (req, res) => {
   try{
-    const {search, filterBy, range, sortBy, order, page = 1, limit = 6, bestSeller} = req.query
-    console.log(req.query)
-
-    let count;
-    let product;
-
-    if(filterBy === 'basePrice'){
-      count = Number(await productModel.countAllbyBasePrice(search))
-    } else {
-      count = Number(await productModel.countAll(search,filterBy,bestSeller))
-    }
-
+    const {keyword, page = 1, limit = 5} = req.query
+    
+    const count = Number(await productModel.countAll(keyword))
     const totalPage = Math.ceil(count / limit)
     const nextPage = Number(page) + 1
     const prevPage = Number(page) - 1
 
-    if(filterBy === 'basePrice' || filterBy === 'id'){
-      product = await productModel.findAllByIdOrBasePrice(search, filterBy, range, sortBy, order, page, limit, bestSeller)
-    } else {
-      product = await productModel.findAll(search, filterBy, sortBy, order, page, limit, bestSeller)
+    if(page == 0) {
+      return res.json({
+        success: false,
+        message: 'Bad Request'
+      })
     }
+
+    const product = await productModel.findAll(keyword, page, limit)
+
+    if(product.length === 0) {
       return res.json({
         success: true,
-        message: 'List All Products',
+        message: 'Product Not Found',
         pageInfo: {
           currentPage: Number(page),
           totalPage,
@@ -40,10 +36,24 @@ exports.getAllProducts = async (req, res) => {
         },
         results: product
       })
+    }
+
+    return res.json({
+      success: true,
+      message: 'List All Products',
+      pageInfo: {
+        currentPage: Number(page),
+        totalPage,
+        nextPage: nextPage <= totalPage ? nextPage : null,
+        prevPage: prevPage > 0 ? prevPage : null,
+        totalData: count
+      },
+      results: product
+    })
   }catch(err){
     return res.json({
       success: false,
-      message: 'Products Not Found',
+      message: 'Internal Server Error',
     })
   }
 }
@@ -208,26 +218,20 @@ exports.updateProduct = async (req, res) => {
 }
 
 exports.deleteProduct = async (req,res) => {
-  try{
-    const products = await productModel.findAllOrigin()
-    const {id} = req.params
-    for(let item in products){
-      if(String(products[item]['id']) === id){
-        const product = await productModel.delete(id)
-        return res.json({
-          success: true,
-          message: 'Delete success',
-          results: product
-        })
-      }}
-      return res.json({
-      success: false,
-      message: 'No existing data'
-    })
-  }catch(err){
+  const {id} = req.params
+  const products = await productModel.findOne(id)
+
+  if(!products){
     return res.json({
       success: false,
-      message: 'Internal server error'
+      message: 'No Existing Data'
     })
   }
+  
+  const product = await productModel.delete(id)
+  return res.json({
+    success: true,
+    message: 'Delete Success',
+    results: product
+  })
 }
