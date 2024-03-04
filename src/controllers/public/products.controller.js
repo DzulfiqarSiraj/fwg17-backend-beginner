@@ -59,39 +59,22 @@ exports.getAllProducts = async (req, res) => {
 }
 
 exports.getDetailProduct = async(req, res) => {
-  const {id} = req.params
   try{
-    const products = await productModel.findCombine(id)
-
-    const results = products.reduce((prev,curr,idx,arr)=>{
-      for(keys in curr){
-        if(prev[keys] === undefined){
-          prev[keys] = curr[keys]
-        }
-        if(keys === 'sizes' || keys === 'variants'){
-          if(prev[keys].length === undefined){
-            prev[keys] = []
-          }
-          if(prev[keys].findIndex(item => item.id === curr[keys].id) === -1){
-            prev[keys].push(curr[keys])
-          }
-        }
-      }
-      return prev
-    },{})
-
-    console.log(products)
-    console.log(products.length)
-    return res.json({
-      success: true,
-      message: 'Detail Product',
-      results
-    })
+    const id = Number(req.params.id)
+    const product = await productModel.findOne(id)
+    if(product){
+      return res.json({
+        success: true,
+        message: 'Detail Product',
+        results: product
+      })
+    }else {
+      throw Error()
+    }
   }catch(err){
-    console.error(err)
-    return res.status(500).json({
+    return res.json({
       success: false,
-      message: 'Internal Server Error'
+      message: 'Product Not Found'
     })
   }
 }
