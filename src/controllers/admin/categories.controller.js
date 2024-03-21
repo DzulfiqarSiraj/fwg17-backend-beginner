@@ -80,7 +80,7 @@ exports.createCategory = async(req, res) => {
     return res.json({
       success: true,
       message: "Create Category Successfully",
-      result: category
+      results: category
     })
   }catch(err){
     return res.status(404).json({

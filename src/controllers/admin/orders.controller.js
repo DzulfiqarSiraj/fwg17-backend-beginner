@@ -43,7 +43,7 @@ exports.createOrder = async(req, res) => {
     return res.json({
       success: true,
       message: "Create Order Successfully",
-      result: order
+      results: order
     })
   }catch(err){
     return res.status(404).json({

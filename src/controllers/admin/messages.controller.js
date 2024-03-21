@@ -43,7 +43,7 @@ exports.createMessage = async(req, res) => {
     return res.json({
       success: true,
       message: "Create Message Successfully",
-      result: message
+      results: message
     })
   }catch(err){
     return res.status(404).json({
