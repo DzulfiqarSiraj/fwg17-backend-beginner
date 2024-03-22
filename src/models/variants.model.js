@@ -7,7 +7,7 @@ exports.selectAll = async (keyword='', page = 1, limit) => {
 	SELECT 
 		*
 	FROM 
-		"messages"
+		"variants"
 	WHERE 
 		"name" ILIKE $1
 	ORDER BY 
@@ -28,7 +28,7 @@ exports.countAll = async (keyword='') =>{
 		SELECT 
 			COUNT(*) as "counts"
 		FROM 
-			"messages"
+			"variants"
 		WHERE 
 			"name" ILIKE $1
 	`
@@ -43,7 +43,7 @@ exports.selectOne = async (id) => {
 	SELECT 
 		*
 	FROM 
-		"messages"
+		"variants"
 	WHERE 
 		"id" = $1
 	`
@@ -56,13 +56,13 @@ exports.insert = async (data) => {
 	const sql = 
 	`
 	INSERT INTO 
-		"messages"
-		("recipientId","senderId","text")
+		"variants"
+		("name","additionalPrice")
 	VALUES
-		($1,$2,$3)
+		($1,$2)
 	RETURNING *
 	`
-	const values = [data.recipientId, data.senderId, data.text]
+	const values = [data.name, data.additionalPrice]
 	const {rows} = await db.query(sql, values)
 	return rows[0]
 };
@@ -83,7 +83,7 @@ exports.update = async (id, data) => {
 	const sql = 
 	`
 	UPDATE 
-		"messages"
+		"variants"
 	SET 
 		${column.join(', ')}, 
 		"updatedAt" = NOW()
@@ -99,7 +99,7 @@ exports.delete = async (id) => {
 	const sql = 
 	`
 		DELETE FROM 
-			"messages"
+			"variants"
 		WHERE 
 			"id" = $1
 		RETURNING *

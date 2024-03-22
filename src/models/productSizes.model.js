@@ -1,15 +1,13 @@
 const db = require('../lib/db.lib')
 
-exports.selectAll = async (keyword='', page = 1, limit) => {
+exports.selectAll = async (page = 1, limit) => {
 	const offset = (page-1) * limit
 	const sql = 
 	`
 	SELECT 
 		*
 	FROM 
-		"messages"
-	WHERE 
-		"name" ILIKE $1
+		"productSizes"
 	ORDER BY 
 		"id" ASC
 	LIMIT
@@ -17,22 +15,20 @@ exports.selectAll = async (keyword='', page = 1, limit) => {
 	OFFSET 
 		${offset}
 	`
-	const values = [`%${keyword}%`]
+	const values = []
 	const {rows} = await db.query(sql, values)
 	return rows
 };
 
-exports.countAll = async (keyword='') =>{
+exports.countAll = async () =>{
 	const sql = 
 	`
 		SELECT 
 			COUNT(*) as "counts"
 		FROM 
-			"messages"
-		WHERE 
-			"name" ILIKE $1
+			"productSizes"
 	`
-	const values = [`%${keyword}%`]
+	const values = []
 	const {rows} = await db.query(sql, values)
 	return rows[0].counts
 };
@@ -43,7 +39,7 @@ exports.selectOne = async (id) => {
 	SELECT 
 		*
 	FROM 
-		"messages"
+		"productSizes"
 	WHERE 
 		"id" = $1
 	`
@@ -56,13 +52,13 @@ exports.insert = async (data) => {
 	const sql = 
 	`
 	INSERT INTO 
-		"messages"
-		("recipientId","senderId","text")
+		"productSizes"
+		("productId","sizeId")
 	VALUES
-		($1,$2,$3)
+		($1,$2)
 	RETURNING *
 	`
-	const values = [data.recipientId, data.senderId, data.text]
+	const values = [data.productId, data.sizeId]
 	const {rows} = await db.query(sql, values)
 	return rows[0]
 };
@@ -83,7 +79,7 @@ exports.update = async (id, data) => {
 	const sql = 
 	`
 	UPDATE 
-		"messages"
+		"productSizes"
 	SET 
 		${column.join(', ')}, 
 		"updatedAt" = NOW()
@@ -99,7 +95,7 @@ exports.delete = async (id) => {
 	const sql = 
 	`
 		DELETE FROM 
-			"messages"
+			"productSizes"
 		WHERE 
 			"id" = $1
 		RETURNING *
