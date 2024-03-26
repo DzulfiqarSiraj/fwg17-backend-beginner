@@ -1,237 +1,179 @@
-const productModel = require('../../models/products.model')
-const fsPromises = require('fs/promises')
-const path = require('path')
+const productsModel = require('../../models/products.model')
+const {resFalse, resTrue, pageHandler} = require('../../utils/handler')
 const uploadMiddleware = require('../../middlewares/upload.middleware')
 const upload = uploadMiddleware('products').single('image')
-
+const fsPromises = require('fs/promises')
+const argon = require('argon2')
+const path = require('path')
 
 exports.getAllProducts = async (req, res) => {
-  try{
-    const {keyword, page = 1, limit = 5} = req.query
-    
-    const count = Number(await productModel.countAll(keyword))
-    const totalPage = Math.ceil(count / limit)
-    const nextPage = Number(page) + 1
-    const prevPage = Number(page) - 1
-
-    if(page == 0) {
-      return res.json({
-        success: false,
-        message: 'Bad Request'
-      })
-    }
-
-    const product = await productModel.findAll(keyword, page, limit)
-
-    if(product.length === 0) {
-      return res.json({
-        success: true,
-        message: 'Product Not Found',
-        pageInfo: {
-          currentPage: Number(page),
-          totalPage,
-          nextPage: nextPage <= totalPage ? nextPage : null,
-          prevPage: prevPage > 0 ? prevPage : null,
-          totalData: count
-        },
-        results: product
-      })
-    }
-
-    return res.json({
-      success: true,
-      message: 'List All Products',
-      pageInfo: {
-        currentPage: Number(page),
-        totalPage,
-        nextPage: nextPage <= totalPage ? nextPage : null,
-        prevPage: prevPage > 0 ? prevPage : null,
-        totalData: count
-      },
-      results: product
-    })
-  }catch(err){
-    return res.json({
-      success: false,
-      message: 'Internal Server Error',
-    })
-  }
-}
-
-exports.getDetailProduct = async(req, res) => {
-  try{
-    const id = Number(req.params.id)
-    const product = await productModel.findOne(id)
-    if(product){
-      return res.json({
-        success: true,
-        message: 'Detail Product',
-        results: product
-      })
-    }else {
-      throw Error()
-    }
-  }catch(err){
-    return res.json({
-      success: false,
-      message: 'Product Not Found'
-    })
-  }
-}
-
-exports.createProduct = async(req, res) => {
-  upload(req, res, async (err)=>{
-    try{
-      if(err){
-        throw err
-      }
-
-      if(!req.file){
-        const product = await productModel.insert(req.body)
-        return res.json({
-          success: true,
-          message: "Create Product Successfully",
-          results: product
-        })
-      }
-
-
-      if(req.file){
-        req.body.image = req.file.filename
-      }
+    try {
+        const {keyword, sort = 'id', page = 1, limit=5} = req.query
   
-      const product = await productModel.insert(req.body)
-      return res.json({
-        success: true,
-        message: "Create Product Successfully",
-        results: product
-      })
+        const count = Number(await productsModel.countAll(keyword))
   
-      // if(req.file){
-      //   const extension = {
-      //     'image/png' : '.png',
-      //     'image/jpg' : '.jpg',
-      //     'image/jpeg' : '.jpeg',
-      //   }
-    
-      //   const uploadLocation = path.join(global.path,'uploads','products')
-      //   const fileLocation = path.join(uploadLocation,req.file.filename)
-      //   const filename = `${product.id}${extension[req.file.mimetype]}`
-      //   const newLocation = path.join(uploadLocation, filename)
+        const pagination = pageHandler(count,limit,page)
+  
+        const products = await productsModel.selectAll(keyword, sort, page, limit)
+  
+        if(keyword && products.length === 0){
+            throw new Error(`Keyword doesn't match`)
+        }
+  
+        return resTrue(res, 'List All Products', true, true, pagination, products)
+  
+    } catch (error) {
+		console.log(error)
+        return resFalse(error, res, error.message, 'Product')
+    }
+};
+
+exports.getDetailProduct = async (req, res) => {
+    try {
+        const id = Number(req.params.id)
+        const product = await productsModel.selectOneDetailed(id)
         
-      //   await fsPromises.rename(fileLocation, newLocation)
-      //   const renamedProduct = await productModel.update(product.id, {
-      //     image: filename
-      //   })
-      //   return res.json({
-      //     success: true,
-      //     message: "Create Product Successfully",
-      //     results: renamedProduct
-      //   })
-      // }
+        if(!product) {
+            throw new Error(`Id is not found`)
+        }
   
-    }catch(err){
-      if(err.message === 'File too large'){
-        return res.status(400).json({
-          success: false,
-          message: err.message
-        })
-      }
-      if(err.message === 'extension_issue'){
-        return res.status(400).json({
-          success: false,
-          message: 'Unsupported File Extension'
-        })
-      }
-      console.log(err)
-      return res.status(500).json({
-        success: false,
-        message: 'Internal Server Error'
-      })
+        return resTrue(res, 'Product Detail', false, true, null, product)
+  
+    } catch (error) {
+		console.log(error)
+        return resFalse(error, res, error.message, 'Product')
     }
-  })
-}
+};
+
+exports.createProduct = async (req, res) => {
+	upload(req, res, async(err) => {
+		try {
+			if(err){
+				throw err
+			}
+
+			let {name, basePrice} = req.body
+			
+			if(!name || !basePrice){
+				throw new Error('Undefined input')
+			}
+
+			if(req.file){
+				req.body.image = req.file.filename
+			}
+
+			const product = await productsModel.insert(req.body)
+
+			if(req.file){
+				const ext = {
+					'image/png'	: '.png',
+					'image/jpg'	: '.jpg',
+					'image/jpeg': '.jpeg'
+				}
+
+				const pathDestination = path.join(global.path, 'uploads','products')
+				const fileTarget = path.join(pathDestination, req.file.filename)
+				const filename = `${product.id}_${req.body.name.split(' ').join('_')}${ext[req.file.mimetype]}`
+                console.log(filename)
+				const newPathDestination = path.join(pathDestination, filename)
+
+				await fsPromises.rename(fileTarget, newPathDestination)
+				const newProduct = await productsModel.update(product.id, {
+					image : filename
+				})
+
+				return resTrue(res,'Create Product Successfully',false, true, null, newProduct)
+			}
+
+			return resTrue(res,'Create Product Successfully',false, true, null, product)
+
+		} catch (error) {
+			console.log(error)
+			return resFalse(error, res, error.message,'Product')
+		}
+	})
+};
 
 exports.updateProduct = async (req, res) => {
-  const currentData = await productModel.findOne(Number(req.params.id))
-  if(!currentData){
-    return res.json({
-      success: false,
-      message: 'No Existing Data'
-    })
-  }
+	upload(req, res, async(err) => {
+		try {
+			if(err){
+				throw err
+			}
 
-  upload(req, res, async (err) =>{
-    try{
-      if(err){
-        throw err
-      }
-      
-      const {id} = req.params
+			const id = Number(req.params.id)
 
-      if(req.file){
-        const savedImage = await productModel.findOne(Number(req.params.id))
-        if(savedImage.image){
-          const currentFilePath = path.join(global.path,'uploads','products',currentData.image)
-          fsPromises.access(currentFilePath, fsPromises.constants.R_OK).then(()=>{
-            fsPromises.rm(currentFilePath)
-          }).catch(() => {})
+			const existProduct = await productsModel.selectOne(id)
+
+			if(!existProduct){
+				throw new Error('Id is not found')
+			}
+
+			if(req.file){
+				if(existProduct.image){
+					const currentFilePath = path.join(global.path, 'uploads','products', existProduct.image)
+					fsPromises.access(currentFilePath, fsPromises.constants.R_OK).then(() => {
+						fsPromises.rm(currentFilePath)
+					}).catch(() => {})
+				}
+				req.body.image = req.file.filename
+			}
+
+			let product = await productsModel.update(id, req.body)
+
+			if(req.file){
+                const ext = {
+					'image/png'	: '.png',
+					'image/jpg'	: '.jpg',
+					'image/jpeg': '.jpeg'
+				}
+
+				const pathDestination = path.join(global.path, 'uploads','products')
+				const fileTarget = path.join(pathDestination, req.file.filename)
+				const filename = `${product.id}_${product.name.split(' ').join('_')}${ext[req.file.mimetype]}`
+				const newPathDestination = path.join(pathDestination, filename)
+
+				await fsPromises.rename(fileTarget, newPathDestination)
+				const newProduct = await productsModel.update(product.id, {
+					image : filename
+				});
+
+                return resTrue(res, 'Update Product Successfully', false, true, null, newProduct)
+			}
+            
+            return resTrue(res, 'Update Product Successfully', false, true, null, product)
+
+		} catch (error) {
+			console.log(error)
+			return resFalse(error, res, error.message, 'Product')
+		}
+	})
+};
+
+exports.deleteProduct = async (req, res) => {
+    try {
+        const id = Number(req.params.id)
+
+        const existProduct = await productsModel.selectOne(id)
+
+        if(!existProduct){
+            throw new Error(`Id is not found`)
         }
-        req.body.image = req.file.filename
-      }
-      
-      let product = await productModel.update(id, req.body)
-      if(req.file){
-        const uploadLocation = path.join(global.path,'uploads','products')
-        const fileLocation = path.join(uploadLocation, req.file.filename)
-        const filename = `${product.name.split(' ').join('_')}_${req.file.filename}`
-        const newLocation = path.join(uploadLocation, filename)
-  
-        await fsPromises.rename(fileLocation, newLocation)
-        product = await productModel.update(product.id, {image: filename})
-      }
-      return res.json({
-        success: true,
-        message: 'Update Product Successfully',
-        results: product
-      })
-    } catch(err){
-      if(err.message === 'File too large. Max. Upload Size 1MB'){
-        return res.status(400).json({
-          success: false,
-          message: err.message
-        })
-      }
-      if(err.message === 'extension_issue'){
-        return res.status(400).json({
-          success: false,
-          message: 'Unsupported File Extension. File Extension Should Be(PNG/JPG/JPEG)'
-        })
-      }
-      console.log(err)
-      return res.status(500).json({
-        success: false,
-        message: 'Internal Server Error'
-      })
+
+        if(existProduct.image){
+            const currentFilePath = path.join(global.path, 'uploads','products', existProduct.image)
+            fsPromises.access(currentFilePath, fsPromises.constants.R_OK).then(() => {
+                fsPromises.rm(currentFilePath)
+            }).catch(() => {})
+        }
+
+        const product = await productsModel.delete(id)
+
+
+        return resTrue(res,'Delete Product Successfully',false,true,null,product)
+
+    } catch (error) {
+        console.log(error)
+        return resFalse(error, res, error.message,'Product')
     }
-  })
-}
-
-exports.deleteProduct = async (req,res) => {
-  const {id} = req.params
-  const products = await productModel.findOne(id)
-
-  if(!products){
-    return res.json({
-      success: false,
-      message: 'No Existing Data'
-    })
-  }
-  
-  const product = await productModel.delete(id)
-  return res.json({
-    success: true,
-    message: 'Delete Success',
-    results: product
-  })
-}
+};

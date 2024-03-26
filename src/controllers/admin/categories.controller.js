@@ -1,127 +1,106 @@
-const categoryModel = require('../../models/categories.model')
+const categoriesModel = require('../../models/categories.model')
+const {resFalse, resTrue, pageHandler} = require('../../utils/handler')
 
 exports.getAllCategories = async (req, res) => {
-  try{
-    const {keyword, page = 1, limit = 5} = req.query
+    try {
+        const {keyword, page = 1, limit=5} = req.query
 
-    const count = Number(await categoryModel.countAll(keyword))
-    const totalPage = Math.ceil(count / limit)
-    const nextPage = Number(page) + 1
-    const prevPage = Number(page) - 1
+        const count = Number(await categoriesModel.countAll(keyword))
 
-    if(page == 0) {
-      return res.json({
-        success: false,
-        message: 'Bad Request'
-      })
+        const pagination = pageHandler(count,limit,page)
+
+        const categories = await categoriesModel.selectAll(keyword, page, limit)
+
+        if(keyword && categories.length === 0){
+            throw new Error(`Keyword doesn't match`)
+        }
+
+        return resTrue(res, 'List All Categories', true, true, pagination, categories)
+
+    } catch (error) {
+        console.log(error)
+        return resFalse(error, res, error.message, 'Categorie')
     }
+};
 
-    const categories = await categoryModel.findAll(keyword, page, limit)
+exports.getDetailCategory = async (req, res) => {
+    try {
+        const id = Number(req.params.id)
+        const category = await categoriesModel.selectOne(id)
+        
+        if(!category) {
+            throw new Error(`Id is not found`)
+        }
 
-    if(categories.length === 0) {
-      return res.json({
-        success: true,
-        message: 'Categories Not Found',
-        pageInfo: {
-          currentPage: Number(page),
-          totalPage,
-          nextPage: nextPage <= totalPage ? nextPage : null,
-          prevPage: prevPage > 0 ? prevPage : null,
-          totalData: count
-        },
-        results: categories
-      })
+        return resTrue(res, 'Category Detail', false, true, null, category)
+
+    } catch (error) {
+        console.log(error)
+        return resFalse(error, res, error.message, 'Category')
     }
+};
 
-    return res.json({
-      success: true,
-      message: 'List All Categories',
-      pageInfo: {
-        currentPage: Number(page),
-        totalPage,
-        nextPage: nextPage <= totalPage ? nextPage : null,
-        prevPage: prevPage > 0 ? prevPage : null,
-        totalData: count
-      },
-      results: categories
-    })
-  }catch(err){
-    return res.json({
-      success: false,
-      message: 'Internal Server Error',
-    })
-  }
-}
+exports.createCategory = async (req, res) => {
+    try {
+        const {name} = req.body
 
-exports.getDetailCategory = async(req, res) => {
-  try{
-    const id = Number(req.params.id)
-    const category = await categoryModel.findOne(id)
-    if(category){
-      return res.json({
-        success: true,
-        message: 'Detail Category',
-        results: category
-      })
-    }else {
-      throw Error()
+        if(!name || req.body['name'] === undefined){
+            throw new Error('Undefined input')
+        }
+
+        const category = await categoriesModel.insert(req.body)
+
+        return resTrue(res, 'Create New Category Successfully',false, true, null, category)
+
+    } catch (error) {
+        console.log(error)
+        return resFalse(error, res, error.message, 'Category')
     }
-  }catch(err){
-    return res.json({
-      success: false,
-      message: 'Category Not Found'
-    })
-  }
-}
-
-exports.createCategory = async(req, res) => {
-  try{
-    const category = await categoryModel.insert(req.body)
-    return res.json({
-      success: true,
-      message: "Create Category Successfully",
-      results: category
-    })
-  }catch(err){
-    return res.status(404).json({
-      success: false,
-      message: 'Error'
-    })
-  }
-}
+};
 
 exports.updateCategory = async (req, res) => {
-  try{
-    const {id} = req.params
-    const category = await categoryModel.update(id, req.body)
-    return res.json({
-      success: true,
-      message: 'Update Category Successfully',
-      results: category
-    })
-  } catch(err){
-    return res.json({
-      success: false,
-      message: 'Update Fail',
-    })
-  }
-}
+    try {
+        const id = Number(req.params.id)
 
-exports.deleteCategory = async (req,res) => {
-  const {id} = req.params
-  const categories = await categoryModel.findOne(id)
+        const existCategory = await categoriesModel.selectOne(id)
 
-  if(!categories){
-    return res.json({
-      success: false,
-      message: 'No Existing Data'
-    })
-  }
-  
-  const category = await categoryModel.delete(id)
-  return res.json({
-    success: true,
-    message: 'Delete Success',
-    results: category
-  })
-}
+        if(!existCategory){
+            throw new Error(`Id is not found`)
+        }
+
+        if(!req.body.name && !req.body.additionalPrice){
+            throw new Error('Undefined input')
+        }
+
+        if(req.body.name === existCategory.name){
+            throw new Error('Duplicate,name')
+        }
+        
+        const category = await categoriesModel.update(id, req.body)
+
+        return resTrue(res,'Update Category Successfully',false,true,null,category)
+    } catch (error) {
+        console.log(error)
+        return resFalse(error, res, error.message, 'Category')
+    }
+};
+
+exports.deleteCategory = async (req, res) => {
+    try {
+        const id = Number(req.params.id)
+
+        const existCategory = await categoriesModel.selectOne(id)
+
+        if(!existCategory){
+            throw new Error(`Id is not found`)
+        }
+
+        const category = await categoriesModel.delete(id)
+
+        return resTrue(res,'Delete Category Successfully',false,true,null,category)
+
+    } catch (error) {
+        console.log(error)
+        return resFalse(error, res, error.message,'Category')
+    }
+};

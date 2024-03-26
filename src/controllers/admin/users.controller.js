@@ -1,204 +1,185 @@
-const userModel = require('../../models/users.model')
-const argon = require("argon2")
-const fsPromises = require('fs/promises')
-const path = require('path')
+const usersModel = require('../../models/users.model')
+const {resFalse, resTrue, pageHandler} = require('../../utils/handler')
 const uploadMiddleware = require('../../middlewares/upload.middleware')
 const upload = uploadMiddleware('users').single('pictures')
+const fsPromises = require('fs/promises')
+const argon = require("argon2")
+const path = require('path')
 
-exports.getAllUsers = async (req,res) => {
-  try{
-    const {keyword, page = 1, limit = 5} = req.query
-  
-  const count = Number(await userModel.countAll(keyword))
-  const totalPage = Math.ceil(count / limit)
-  const nextPage = Number(page) + 1
-  const prevPage = Number(page) - 1
+exports.getAllUsers = async (req, res) => {
+	try {
+		const {keyword, page = 1, limit=5} = req.query
 
-  if(page == 0) {
-    return res.json({
-      success: false,
-      message: 'Bad Request'
-    })
+		const count = Number(await usersModel.countAll(keyword))
+
+		const pagination = pageHandler(count,limit,page)
+
+		const users = await usersModel.selectAll(keyword, page, limit)
+
+		if(keyword && users.length === 0){
+			throw new Error(`Keyword doesn't match`)
+		}
+
+		return resTrue(res, 'List All Users', true, true, pagination, users)
+
+	} catch (error) {
+		console.log(error)
+		return resFalse(error, res, error.message, 'User')
+	}
+};
+
+exports.getDetailUser = async (req, res) => {
+  try {
+      const id = Number(req.params.id)
+      const user = await usersModel.selectOne(id)
+      
+      if(!user) {
+          throw new Error(`Id is not found`)
+      }
+
+      return resTrue(res, 'User Detail', false, true, null, user)
+
+  } catch (error) {
+		console.log(error)
+		return resFalse(error, res, error.message, 'User')
   }
-  
-  const users = await userModel.findAll(keyword, page, limit)
-  
-  if(users.length === 0) {
-    return res.json({
-      success: true,
-      message: "Users Not Found",
-      pageInfo: {
-        currentPage: Number(page),
-        totalPage,
-        nextPage: nextPage <= totalPage ? nextPage : null,
-        prevPage: prevPage > 0 ? prevPage : null,
-        totalData: count
-      },
-      results: users
-    })
-  }
+};
 
-  return res.json({
-    success: true,
-    message: "List All Users",
-    pageInfo: {
-      currentPage: Number(page),
-      totalPage,
-      nextPage: nextPage <= totalPage ? nextPage : null,
-      prevPage: prevPage > 0 ? prevPage : null,
-      totalData: count
-    },
-    results: users
-  })
-  }catch(err){
-    return res.json({
-      success: false,
-      message: 'Internal Server Error',
-    })
-  }
-}
+exports.createUser = async (req, res) => {
+	upload(req, res, async(err) => {
+		try {
+			if(err){
+				throw err
+			}
 
+			let {fullName, email, password} = req.body
+			
+			if(!fullName || !email || !password){
+				throw new Error('Undefined input')
+			}
 
-exports.getDetailUser = async (req,res) => {
-  try{
-    const id = Number(req.params.id)
-    const user = await userModel.findOne(id)
-    if(user){
-      return res.json({
-        success: true,
-        message: 'Detail User',
-        results: user
-      })
-    }else{
-      throw Error()
-    }
-  }catch(err){
-    return res.json({
-      success: false,
-      message: 'User Not Found'
-    })
-  }
-}
+			if(password){
+				req.body.password = await argon.hash(req.body.password)
+			}
 
+			if(req.file){
+				req.body.pictures = req.file.filename
+			}
 
-exports.createUser = async(req, res) => {
-  upload(req, res, async (err) => {
-    try{
-      if(err){
-        throw err
-      }
+			const user = await usersModel.insert(req.body)
 
-      if(req.body.password){
-        req.body.password = await argon.hash(req.body.password)
-      }
-          
-      if(req.file){
-        req.body.pictures = req.file.filename
-      }
-  
-      const user = await userModel.insert(req.body)
-  
-      if(req.file){
-        const extension = {
-          'image/png' : '.png',
-          'image/jpg' : '.jpg',
-          'image/jpeg' : '.jpeg',
-        }
-  
-        const uploadLocation = path.join(global.path,'uploads','users')
-        const fileLocation = path.join(uploadLocation, req.file.filename)
-        const filename = `${user.id}${extension[req.file.mimetype]}`
-        const newLocation = path.join(uploadLocation, filename)
-  
-        await fsPromises.rename(fileLocation, newLocation)
-        const renamedUser = await userModel.update(user.id, {
-          pictures: filename
-        })
-        return res.json({
-          success: true,
-          message: 'Create User Successfully',
-          results: renamedUser
-        })
-      }
-    }catch(err){
-      if(err.message === 'File too large'){
-        return res.status(400).json({
-          success: false,
-          message: err.message
-        })
-      }
-      if(err.message === 'extension_issue'){
-        return res.status(400).json({
-          success: false,
-          message: 'Unsupported File Extension'
-        })
-      }
-      return res.status(500).json({
-        success: false,
-        message: 'Internal Server Error'
-      })
-    }
-  })
-}
+			if(req.file){
+				const ext = {
+					'image/png'	: '.png',
+					'image/jpg'	: '.jpg',
+					'image/jpeg': '.jpeg'
+				}
 
+				const pathDestination = path.join(global.path, 'uploads','users')
+				const fileTarget = path.join(pathDestination, req.file.filename)
+				const filename = `${user.id}_${req.body.name.split(' ').join('_')}${ext[req.file.mimetype]}`
+				const newPathDestination = path.join(pathDestination, filename)
+
+				await fsPromises.rename(fileTarget, newPathDestination)
+				const newUser = await usersModel.update(user.id, {
+					pictures : filename
+				})
+
+				resTrue(res,'Create User Successfully',false, true, null, newUser)
+			}
+
+			return resTrue(res,'Create User Successfully',false, true, null, user)
+
+		} catch (error) {
+			console.log(error)
+			return resFalse(error, res, error.message,'User')
+		}
+	})
+};
 
 exports.updateUser = async (req, res) => {
-  upload(req, res, async (err) => {
-    try{
-      if(err){
-        throw err
-      }
+	upload(req, res, async(err) => {
+		try {
+			if(err){
+				throw err
+			}
 
-      const {id} = req.params
-      if(req.file){
-        req.body.pictures = req.file.filename
-      }
-  
-      if(req.body.password){
-        req.body.password = await argon.hash(req.body.password)
-      }
-      
-      const user = await userModel.update(id, req.body)
-      return res.json({
-        success: true,
-        message: 'Update User Successfully',
-        results: user
-      })
-    }catch(err){
-      if(err.message === 'File too large'){
-        return res.status(400).json({
-          success: false,
-          message: err.message
-        })
-      }
-      if(err.message === 'extension_issue'){
-        return res.status(400).json({
-          success: false,
-          message: 'Unsupported File Extension'
-        })
-      }
-      return res.status(500).json({
-        success: false,
-        message: 'Internal Server Error'
-      })
-    }
-  })
-}
+			const id = Number(req.params.id)
+
+			const existUser = await usersModel.selectOne(id)
+
+			if(!existUser){
+				throw new Error('Id is not found')
+			}
+
+			if(req.body.password){
+				req.body.password = await argon.hash(req.body.password)
+			}
+
+			if(req.file){
+				if(existUser.pictures){
+					const currentFilePath = path.join(global.path, 'uploads','users', existUser.pictures)
+					fsPromises.access(currentFilePath, fsPromises.constants.R_OK).then(() => {
+						fsPromises.rm(currentFilePath)
+					}).catch(() => {})
+				}
+				req.body.pictures = req.file.filename
+			}
+
+			let user = await usersModel.update(id, req.body)
+
+			if(req.file){
+				const ext = {
+					'image/png'	: '.png',
+					'image/jpg'	: '.jpg',
+					'image/jpeg': '.jpeg'
+				}
+
+				const pathDestination = path.join(global.path, 'uploads','users')
+				const fileTarget = path.join(pathDestination, req.file.filename)
+				const filename = `${user.id}_${user.fullName.split(' ').join('_')}${ext[req.file.mimetype]}`
+				const newPathDestination = path.join(pathDestination, filename)
+
+				await fsPromises.rename(fileTarget, newPathDestination)
+				const newUser = await usersModel.update(user.id, {
+					pictures : filename
+				});
+
+				return resTrue(res, 'Update User Successfully', false, true, null, newUser)
+			}
+
+			return resTrue(res, 'Update User Successfully', false, true, null, user)
+
+		} catch (error) {
+			console.log(error)
+			return resFalse(error, res, error.message, 'User')
+		}
+	})
+};
 
 exports.deleteUser = async (req, res) => {
-  const {id} = req.params
-  const users = await userModel.findOne(id)
+    try {
+        const id = Number(req.params.id)
 
-  if(!users){
-    return res.json({
-      success: false,
-      message: 'No Existing Data'
-    })
-  }
+        const existUser = await usersModel.selectOne(id)
 
-  return res.json({
-    success: true,
-    message: 'Delete Success',
-    results: users
-  })
-}
+        if(!existUser){
+            throw new Error(`Id is not found`)
+        }
+
+		if(existUser.pictures){
+			const currentFilePath = path.join(global.path, 'uploads','users', existUser.pictures)
+			fsPromises.access(currentFilePath, fsPromises.constants.R_OK).then(() => {
+				fsPromises.rm(currentFilePath)
+			}).catch(() => {})
+		}
+
+        const user = await usersModel.delete(id)
+
+        return resTrue(res,'Delete User Successfully',false,true,null,user)
+
+    } catch (error) {
+        console.log(error)
+        return resFalse(error, res, error.message,'User')
+    }
+};

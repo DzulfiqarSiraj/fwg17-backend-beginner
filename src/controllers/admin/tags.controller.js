@@ -1,100 +1,106 @@
-const tagModel = require('../../models/tags.model')
+const tagsModel = require('../../models/tags.model')
+const {resFalse, resTrue, pageHandler} = require('../../utils/handler')
 
-exports.getAllTags = async (req,res) => {
-  try{
-    const tags = await tagModel.findAll()
-    return res.json({
-      success: true,
-      message: "List All Tags",
-      results: tags
-    })
-  }catch(err){
-    return res.json({
-      success: true,
-      message: "Tags Not Found"
-    })
-  }
-}
+exports.getAllTags = async (req, res) => {
+    try {
+        const {keyword, page = 1, limit=5} = req.query
 
+        const count = Number(await tagsModel.countAll(keyword))
 
-exports.getDetailTag = async (req,res) => {
-  try{
-    const id = Number(req.params.id)
-    const tag = await tagModel.findOne(id)
-    if(tag){
-      return res.json({
-        success: true,
-        message: 'Detail Tag',
-        results: tag
-      })
-    }else{
-      throw Error()
+        const pagination = pageHandler(count,limit,page)
+
+        const tags = await tagsModel.selectAll(keyword, page, limit)
+
+        if(keyword && tags.length === 0){
+            throw new Error(`Keyword doesn't match`)
+        }
+
+        return resTrue(res, 'List All Tags', true, true, pagination, tags)
+
+    } catch (error) {
+        console.log(error)
+        return resFalse(error, res, error.message, 'Tag')
     }
-  }catch(err){
-    return res.json({
-      success: false,
-      message: 'Tag Not Found'
-    })
-  }
-}
+};
 
+exports.getDetailTag = async (req, res) => {
+    try {
+        const id = Number(req.params.id)
+        const tag = await tagsModel.selectOne(id)
+        
+        if(!tag) {
+            throw new Error(`Id is not found`)
+        }
 
-exports.createTag = async(req, res) => {
-  try{
-    const tag = await tagModel.insert(req.body)
-  
-    return res.json({
-    success: true,
-    message: 'Create Tag Successfully',
-    results: tag
-  })
-  }catch(err){
-    return res.status(404).json({
-      success: false,
-      message: 'Error'
-    })
-  }
-}
+        return resTrue(res, 'Tag Detail', false, true, null, tag)
 
+    } catch (error) {
+        console.log(error)
+        return resFalse(error, res, error.message, 'Tag')
+    }
+};
+
+exports.createTag = async (req, res) => {
+    try {
+        const {name, discount} = req.body
+
+        if(!name || !discount || req.body['name'] === undefined || req.body['discount'] === undefined){
+            throw new Error('Undefined input')
+        }
+
+        const tag = await tagsModel.insert(req.body)
+
+        return resTrue(res, 'Create New Tag Successfully',false, true, null, tag)
+
+    } catch (error) {
+        console.log(error)
+        return resFalse(error, res, error.message, 'Tag')
+    }
+};
 
 exports.updateTag = async (req, res) => {
-  try{
-    const {id} = req.params
-    const tag = await tagModel.update(id, req.body)
-    return res.json({
-      success: true,
-      message: 'Update Tag Successfully',
-      results: tag
-    })
-  }catch(err){
-    return res.json({
-      success: false,
-      message: 'Update Fail'
-    })
-  }
-}
+    try {
+        const id = Number(req.params.id)
+
+        const existTag = await tagsModel.selectOne(id)
+
+        if(!existTag){
+            throw new Error(`Id is not found`)
+        }
+
+        if(!req.body.name && !req.body.discount){
+            throw new Error('Undefined input')
+        }
+
+        if(req.body.name === existTag.name){
+            throw new Error('Duplicate,name')
+        }
+        
+        const tag = await tagsModel.update(id, req.body)
+
+        return resTrue(res,'Update Tag Successfully',false,true,null,tag)
+    } catch (error) {
+        console.log(error)
+        return resFalse(error, res, error.message, 'Tag')
+    }
+};
 
 exports.deleteTag = async (req, res) => {
-  try{
-    const tags = await tagModel.findAll()
-    const {id} = req.params
-    for(let item in tags){
-      if(String(tags[item]['id']) === id){
-        const tag = await tagModel.delete(id)
-        return res.json({
-          success: true,
-          message: 'Delete success',
-          results: tag
-        })
-      }}
-      return res.json({
-      success: false,
-      message: 'No existing data'
-    })
-  }catch(err){
-    return res.json({
-      success: false,
-      message: 'Internal server error'
-    })
-  }
-}
+    try {
+        const id = Number(req.params.id)
+
+        const existTag = await tagsModel.selectOne(id)
+
+        if(!existTag){
+            throw new Error(`Id is not found`)
+        }
+
+        const tag = await tagsModel.delete(id)
+
+        return resTrue(res,'Delete Tag Successfully',false,true,null,tag)
+
+    } catch (error) {
+        console.log(error)
+        return resFalse(error, res, error.message,'Tag')
+    }
+};

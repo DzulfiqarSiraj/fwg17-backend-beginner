@@ -1,100 +1,117 @@
-const productRatingModel = require('../../models/productRatings.model')
+const productRatingsModel = require('../../models/productRatings.model')
+const productsModel = require('../../models/products.model')
+const {resFalse, resTrue, pageHandler} = require('../../utils/handler')
 
-exports.getAllProductRatings = async (req,res) => {
-  try{
-    const productRatings = await productRatingModel.findAll()
-    return res.json({
-      success: true,
-      message: "List All Product Ratings",
-      results: productRatings
-    })
-  }catch(err){
-    return res.json({
-      success: true,
-      message: "Product Ratings Not Found"
-    })
-  }
-}
+exports.getAllProductRatings = async (req, res) => {
+    try {
+        const {page = 1, limit=5} = req.query
 
+        const count = Number(await productRatingsModel.countAll())
 
-exports.getDetailProductRating = async (req,res) => {
-  try{
-    const id = Number(req.params.id)
-    const productRating = await productRatingModel.findOne(id)
-    if(productRating){
-      return res.json({
-        success: true,
-        message: 'Detail Product Rating',
-        results: productRating
-      })
-    }else{
-      throw Error()
+        const pagination = pageHandler(count,limit,page)
+
+        const productRatings = await productRatingsModel.selectAll(page, limit)
+
+        return resTrue(res, 'List All Product Ratings', true, true, pagination, productRatings)
+
+    } catch (error) {
+        console.log(error)
+        return resFalse(error, res, error.message, 'Product Ratings')
     }
-  }catch(err){
-    return res.json({
-      success: false,
-      message: 'Product Rating Not Found'
-    })
-  }
-}
+};
 
+exports.getDetailProductRating = async (req, res) => {
+    try {
+        const id = Number(req.params.id)
+        const productRating = await productRatingsModel.selectOne(id)
+        
+        if(!productRating) {
+            throw new Error(`Id is not found`)
+        }
 
-exports.createProductRating = async(req, res) => {
-  try{
-    const productRating = await productRatingModel.insert(req.body)
-  
-    return res.json({
-    success: true,
-    message: 'Create Product Rating Successfully',
-    results: productRating
-  })
-  }catch(err){
-    return res.status(404).json({
-      success: false,
-      message: 'Error'
-    })
-  }
-}
+        return resTrue(res, 'Product Rating Detail', false, true, null, productRating)
 
+    } catch (error) {
+        console.log(error)
+        return resFalse(error, res, error.message, 'Product Rating')
+    }
+};
+
+exports.createProductRating = async (req, res) => {
+    try {
+        const {productId, rate} = req.body
+        
+        if(!productId || !rate){
+            throw new Error('Undefined input')
+        }
+        
+        const product = await productsModel.selectOne(productId)
+
+        if(!product){
+            throw new Error('Product Id is not found')
+        }
+
+        const productRating = await productRatingsModel.insert(req.body)
+
+        return resTrue(res, 'Create New Product Rating Successfully',false, true, null, productRating)
+
+    } catch (error) {
+        console.log(error)
+        if(error.message === 'Product Id is not found'){
+            return resFalse(error, res, error.message.slice(8), 'Product')
+        }
+        return resFalse(error, res, error.message, 'Product Rating')
+    }
+};
 
 exports.updateProductRating = async (req, res) => {
-  try{
-    const {id} = req.params
-    const productRating = await productRatingModel.update(id, req.body)
-    return res.json({
-      success: true,
-      message: 'Update Product Rating Successfully',
-      results: productRating
-    })
-  }catch(err){
-    return res.json({
-      success: false,
-      message: 'Update Fail'
-    })
-  }
-}
+    try {
+        const id = Number(req.params.id)
+
+        const existProductRating = await productRatingsModel.selectOne(id)
+        
+        const product = await productsModel.selectOne(req.body.productId)
+
+        if(!existProductRating){
+            throw new Error(`Id is not found`)
+        }
+
+        if(!req.body.productId || !req.body.rate){
+            throw new Error('Undefined input')
+        }
+
+        if(!product){
+            throw new Error('Product Id is not found')
+        }
+      
+        const productRating = await productRatingsModel.update(id, req.body)
+
+        return resTrue(res,'Update Product Rating Successfully',false,true,null,productRating)
+    } catch (error) {
+        console.log(error)
+        if(error.message === 'Product Id is not found'){
+            return resFalse(error, res, error.message.slice(8), 'Product')
+        }
+        return resFalse(error, res, error.message, 'Product Rating')
+    }
+};
 
 exports.deleteProductRating = async (req, res) => {
-  try{
-    const productRatings = await productRatingModel.findAll()
-    const {id} = req.params
-    for(let item in productRatings){
-      if(String(productRatings[item]['id']) === id){
-        const productRating = await productRatingModel.delete(id)
-        return res.json({
-          success: true,
-          message: 'Delete success',
-          results: productRating
-        })
-      }}
-      return res.json({
-      success: false,
-      message: 'No existing data'
-    })
-  }catch(err){
-    return res.json({
-      success: false,
-      message: 'Internal server error'
-    })
-  }
-}
+    try {
+        const id = Number(req.params.id)
+
+        const existProductRating = await productRatingsModel.selectOne(id)
+
+        if(!existProductRating){
+            throw new Error(`Id is not found`)
+        }
+        
+        const productRating = await productRatingsModel.delete(id)
+
+        return resTrue(res,'Delete Product Rating Successfully',false,true,null,productRating)
+
+    } catch (error) {
+        console.log(error)
+        return resFalse(error, res, error.message, 'Product Rating')
+    }
+};

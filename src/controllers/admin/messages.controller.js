@@ -1,96 +1,114 @@
-const messageModel = require('../../models/messages.model')
+const messagesModel = require('../../models/messages.model')
+const usersModel = require('../../models/users.model')
+const {resFalse, resTrue, pageHandler} = require('../../utils/handler')
 
 exports.getAllMessages = async (req, res) => {
-  try{
-    const messages = await messageModel.findAll()
-    return res.json({
-      success: true,
-      message: 'List All Messages',
-      results: messages
-    })
-  }catch(err){
-    return res.json({
-      success: false,
-      message: 'Messages Not Found',
-    })
-  }
-}
+    try {
+        const {page = 1, limit=5} = req.query
 
-exports.getDetailMessage = async(req, res) => {
-  try{
-    const id = Number(req.params.id)
-    const message = await messageModel.findOne(id)
-    if(message){
-      return res.json({
-        success: true,
-        message: 'Detail Message',
-        results: message
-      })
-    }else {
-      throw Error()
+        const count = Number(await messagesModel.countAll())
+
+        const pagination = pageHandler(count,limit,page)
+
+        const messages = await messagesModel.selectAll(page, limit)   
+
+        return resTrue(res, 'List All Messages', true, true, pagination, messages)
+
+    } catch (error) {
+        console.log(error)
+        return resFalse(error, res, error.message, 'Messages')
     }
-  }catch(err){
-    return res.json({
-      success: false,
-      message: 'Message Not Found'
-    })
-  }
-}
+};
 
-exports.createMessage = async(req, res) => {
-  try{
-    const message = await messageModel.insert(req.body)
-    return res.json({
-      success: true,
-      message: "Create Message Successfully",
-      results: message
-    })
-  }catch(err){
-    return res.status(404).json({
-      success: false,
-      message: 'Error'
-    })
-  }
-}
+exports.getDetailMessage = async (req, res) => {
+    try {
+        const id = Number(req.params.id)
+        const message = await messagesModel.selectOne(id)
+        
+        if(!message) {
+            throw new Error(`Id is not found`)
+        }
+
+        return resTrue(res, 'Message Detail', false, true, null, message)
+
+    } catch (error) {
+        console.log(error)
+        return resFalse(error, res, error.message, 'Message')
+    }
+};
+
+exports.createMessage = async (req, res) => {
+    try {
+        const recipientId = Number(req.body.recipientId)
+        const senderId = req.user.id
+        const text = req.body.text
+
+        const existRecipientUser = await usersModel.selectOne(recipientId)
+
+        if(!existRecipientUser) {
+            throw new Error(`Id is not found`)
+        }
+
+        if(senderId === recipientId){
+            throw new Error(`Send to own account`)
+        }
+
+        if( !recipientId || 
+            !text || 
+            req.body['recipientId'] === undefined || 
+            req.body['text'] === undefined){
+            throw new Error('Undefined input')
+        }
+
+        const message = await messagesModel.insert(req.body)
+
+        return resTrue(res, 'Create New Message Successfully',false, true, null, message)
+
+    } catch (error) {
+        console.log(error)
+        return resFalse(error, res, error.message, 'Recipient')
+    }
+};
 
 exports.updateMessage = async (req, res) => {
-  try{
-    const {id} = req.params
-    const message = await messageModel.update(id, req.body)
-    return res.json({
-      success: true,
-      message: 'Update Message Successfully',
-      results: message
-    })
-  } catch(err){
-    return res.json({
-      success: false,
-      message: 'Update Fail',
-    })
-  }
-}
+    try {
+        const id = Number(req.params.id)
 
-exports.deleteMessage = async (req,res) => {
-  try{
-    const messages = await messageModel.findAll()
-    const {id} = req.params
-    for(let item in messages){
-      if(String(messages[item]['id']) === id){
-        const message = await messageModel.delete(id)
-        return res.json({
-          success: true,
-          message: 'Delete Success',
-          results: message
-        })
-      }}
-      return res.json({
-      success: false,
-      message: 'No existing data'
-    })
-  }catch(err){
-    return res.json({
-      success: false,
-      message: 'Internal server error'
-    })
-  }
-}
+        const existMessage = await messagesModel.selectOne(id)
+
+        if(!existMessage){
+            throw new Error(`Id is not found`)
+        }
+
+        if(!req.body.text){
+            throw new Error('Undefined input')
+        }
+        
+        const message = await messagesModel.update(id, req.body)
+
+        return resTrue(res,'Update Message Successfully',false,true,null,message)
+    } catch (error) {
+        console.log(error)
+        return resFalse(error, res, error.message, 'Message')
+    }
+};
+
+exports.deleteMessage = async (req, res) => {
+    try {
+        const id = Number(req.params.id)
+
+        const existMessage = await messagesModel.selectOne(id)
+
+        if(!existMessage){
+            throw new Error(`Id is not found`)
+        }
+
+        const message = await messagesModel.delete(id)
+
+        return resTrue(res,'Delete Message Successfully',false,true,null,message)
+
+    } catch (error) {
+        console.log(error)
+        return resFalse(error, res, error.message,'Message')
+    }
+};
