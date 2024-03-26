@@ -1,6 +1,6 @@
 const db = require('../lib/db.lib')
 
-exports.selectAll = async (keyword='', page = 1, limit) => {
+exports.selectAll = async (page = 1, limit) => {
 	const offset = (page-1) * limit
 	const sql = 
 	`
@@ -8,31 +8,27 @@ exports.selectAll = async (keyword='', page = 1, limit) => {
 		*
 	FROM 
 		"messages"
-	WHERE 
-		"name" ILIKE $1
 	ORDER BY 
-		"id" ASC
+		"senderId" ASC
 	LIMIT
 		${limit} 
 	OFFSET 
 		${offset}
 	`
-	const values = [`%${keyword}%`]
+	const values = []
 	const {rows} = await db.query(sql, values)
 	return rows
 };
 
-exports.countAll = async (keyword='') =>{
+exports.countAll = async () =>{
 	const sql = 
 	`
 		SELECT 
 			COUNT(*) as "counts"
 		FROM 
 			"messages"
-		WHERE 
-			"name" ILIKE $1
 	`
-	const values = [`%${keyword}%`]
+	const values = []
 	const {rows} = await db.query(sql, values)
 	return rows[0].counts
 };

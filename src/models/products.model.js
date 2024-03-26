@@ -37,7 +37,7 @@ exports.countAll = async (keyword='')=>{
 	const sql = 
 	`
 	SELECT 
-		COUNT(*)
+		COUNT(*) as "counts"
 	FROM
 		(SELECT 
 			"p"."id",
@@ -65,7 +65,23 @@ exports.countAll = async (keyword='')=>{
 	return rows[0].counts
 }
 
-exports.selectOneCombine = async (id) => {
+exports.selectOne = async (id) => {
+	const sql = 
+	`
+	SELECT
+		*
+	FROM
+		"products"
+	WHERE 
+		"id" = $1
+	`
+
+	const values = [id]
+	const {rows} = await db.query(sql, values)
+	return rows[0]
+};
+
+exports.selectOneDetailed = async (id) => {
 	const sql = 
 	`
 	SELECT
@@ -103,27 +119,11 @@ exports.selectOneCombine = async (id) => {
 	RIGHT JOIN 
 		"categories" "c" ON "c"."id"="pc"."categoryId"
 	WHERE 
-		"p"."id" = 18
+		"p"."id" = $1
 	GROUP BY 
 		"p"."id", "p"."name", "c"."name"
 	`
 
-	const values = [id]
-	const {rows} = await db.query(sql, values)
-	return rows
-};
-
-
-exports.selectOne = async (id) => {
-	const sql = 
-	`
-	SELECT 
-		*
-	FROM 
-		"products"
-	WHERE 
-		"id" = $1
-	`
 	const values = [id]
 	const {rows} = await db.query(sql, values)
 	return rows[0]
@@ -135,7 +135,7 @@ exports.insert = async (data) => {
 	INSERT INTO "products" 
 		("name","basePrice","description","image","isRecommended")
 	VALUES
-		($1,$2,$3,$4,$5,$6)
+		($1,$2,$3,$4,$5)
 	RETURNING *
 	`
 	const values = [data.name, data.basePrice, data.description, data.image, data.isRecommended]

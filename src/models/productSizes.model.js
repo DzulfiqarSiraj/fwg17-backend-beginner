@@ -5,11 +5,22 @@ exports.selectAll = async (page = 1, limit) => {
 	const sql = 
 	`
 	SELECT 
-		*
+		"ps"."id",
+		"ps"."productId",
+		"ps"."sizeId",
+		CONCAT("p"."name", ' - ', "s"."name") "productSize",
+		"ps"."createdAt",
+		"ps"."updatedAt"
 	FROM 
-		"productSizes"
+		"productSizes" "ps"
+	JOIN 
+		"products" "p" ON "p"."id"="ps"."productId"
+	JOIN 
+		"sizes" "s" ON "s"."id"="ps"."sizeId"
+	GROUP BY 
+		"p"."id","s"."id","ps"."id"
 	ORDER BY 
-		"id" ASC
+		"ps"."id" ASC
 	LIMIT
 		${limit} 
 	OFFSET 
@@ -36,14 +47,51 @@ exports.countAll = async () =>{
 exports.selectOne = async (id) => {
 	const sql = 
 	`
-	SELECT 
-		*
-	FROM 
-		"productSizes"
-	WHERE 
-		"id" = $1
+		SELECT 
+			"ps"."id",
+			"ps"."productId",
+			"ps"."sizeId",
+			CONCAT("p"."name", ' - ', "s"."name") "productSize",
+			"ps"."createdAt",
+			"ps"."updatedAt"
+		FROM 
+			"productSizes" "ps"
+		JOIN 
+			"products" "p" ON "p"."id"="ps"."productId"
+		JOIN 
+			"sizes" "s" ON "s"."id"="ps"."sizeId"
+		WHERE 
+			"ps"."id" = $1
+		GROUP BY 
+			"p"."id","s"."id","ps"."id"
 	`
 	const values = [id]
+	const {rows} = await db.query(sql, values)
+	return rows[0]
+};
+
+exports.selectOneByProductIdAndSizeId = async (productId, sizeId) => {
+	const sql = 
+	`
+		SELECT 
+			"ps"."id",
+			"ps"."productId",
+			"ps"."sizeId",
+			CONCAT("p"."name", ' - ',"s"."name") "productSize",
+			"ps"."createdAt",
+			"ps"."updatedAt"
+		FROM 
+			"productSizes" "ps"
+		JOIN 
+			"products" "p" ON "p"."id"="ps"."productId"
+		JOIN 
+			"sizes" "s" ON "s"."id"="ps"."sizeId"
+		WHERE 
+			"ps"."productId" = $1 AND "ps"."sizeId" = $2
+		GROUP BY 
+			"p"."id","s"."id","ps"."id"
+	`
+	const values = [productId,sizeId]
 	const {rows} = await db.query(sql, values)
 	return rows[0]
 };

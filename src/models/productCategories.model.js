@@ -4,16 +4,27 @@ exports.selectAll = async (page = 1, limit) => {
 	const offset = (page-1) * limit
 	const sql = 
 	`
-	SELECT 
-		*
-	FROM 
-		"productCategories"
-	ORDER BY 
-		"id" ASC
-	LIMIT
-		${limit} 
-	OFFSET 
-		${offset}
+		SELECT
+			"pc"."id",
+			"pc"."productId",
+			"pc"."categoryId",
+			CONCAT("p"."name", ' - ', "c"."name") "productCategory",
+			"pc"."createdAt",
+			"pc"."updatedAt"
+		FROM 
+			"productCategories" "pc"
+		JOIN 
+			"products" "p" ON "p"."id"="pc"."productId"
+		JOIN 
+			"categories" "c" ON "c"."id"="pc"."categoryId"
+		GROUP BY 
+			"p"."id","c"."id","pc"."id"
+		ORDER BY 
+			"pc"."id" ASC
+		LIMIT
+			${limit} 
+		OFFSET 
+			${offset}
 	`
 	const values = []
 	const {rows} = await db.query(sql, values)
@@ -36,14 +47,51 @@ exports.countAll = async () =>{
 exports.selectOne = async (id) => {
 	const sql = 
 	`
-	SELECT 
-		*
-	FROM 
-		"productCategories"
-	WHERE 
-		"id" = $1
+		SELECT 
+			"pc"."id",
+			"pc"."productId",
+			"pc"."categoryId",
+			CONCAT("p"."name", ' - ',"c"."name") "productCategory",
+			"pc"."createdAt",
+			"pc"."updatedAt"
+		FROM 
+			"productCategories" "pc"
+		JOIN 
+			"products" "p" ON "p"."id"="pc"."productId"
+		JOIN 
+			"categories" "c" ON "c"."id"="pc"."categoryId"
+		WHERE
+			"pc"."id" = $1
+		GROUP BY 
+			"p"."id","c"."id","pc"."id"
 	`
 	const values = [id]
+	const {rows} = await db.query(sql, values)
+	return rows[0]
+};
+
+exports.selectOneByProductIdAndCategoryId = async (productId, categoryId) => {
+	const sql = 
+	`
+		SELECT 
+			"pc"."id",
+			"pc"."productId",
+			"pc"."categoryId",
+			CONCAT("p"."name", ' - ',"c"."name") "productCategory",
+			"pc"."createdAt",
+			"pc"."updatedAt"
+		FROM 
+			"productCategories" "pc"
+		JOIN 
+			"products" "p" ON "p"."id"="pc"."productId"
+		JOIN 
+			"categories" "c" ON "c"."id"="pc"."categoryId"
+		WHERE 
+			"pc"."productId" = $1 AND "pc"."categoryId" = $2
+		GROUP BY 
+			"p"."id","c"."id","pc"."id"
+	`
+	const values = [productId,categoryId]
 	const {rows} = await db.query(sql, values)
 	return rows[0]
 };

@@ -4,8 +4,16 @@ exports.selectAll = async (keyword='', page = 1, limit) => {
 	const offset = (page-1) * limit
 	const sql = 
 	`
-		SELECT 
-			*
+		SELECT
+			"id", 
+			"fullName",
+			"email",
+			"address",
+			"phoneNumber",
+			"role",
+			"pictures",
+			"createdAt",
+			"updatedAt"
 		FROM 
 			"users"
 		WHERE 
@@ -41,7 +49,15 @@ exports.selectOne = async (id) => {
 	const sql = 
 	`
 		SELECT 
-			*
+			"id", 
+			"fullName",
+			"email",
+			"address",
+			"phoneNumber",
+			"role",
+			"pictures",
+			"createdAt",
+			"updatedAt"
 		FROM 
 			"users"
 		WHERE 

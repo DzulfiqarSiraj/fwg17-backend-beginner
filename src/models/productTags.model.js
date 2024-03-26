@@ -5,11 +5,22 @@ exports.selectAll = async (page = 1, limit) => {
 	const sql = 
 	`
 	SELECT 
-		*
+		"pt"."id",
+		"pt"."productId",
+		"pt"."tagId",
+		CONCAT("p"."name", ' - ', "t"."name") "productTag",
+		"pt"."createdAt",
+		"pt"."updatedAt"
 	FROM 
-		"productTags"
+		"productTags" "pt"
+	JOIN 
+		"products" "p" ON "p"."id"="pt"."productId"
+	JOIN 
+		"tags" "t" ON "t"."id"="pt"."tagId"
+	GROUP BY 
+		"p"."id","t"."id","pt"."id"
 	ORDER BY 
-		"id" ASC
+		"pt"."id" ASC
 	LIMIT
 		${limit} 
 	OFFSET 
@@ -37,13 +48,51 @@ exports.selectOne = async (id) => {
 	const sql = 
 	`
 	SELECT 
-		*
+		"pt"."id",
+		"pt"."productId",
+		"pt"."tagId",
+		CONCAT("p"."name", ' - ', "t"."name") "productTag",
+		"pt"."createdAt",
+		"pt"."updatedAt"
 	FROM 
-		"productTags"
+		"productTags" "pt"
+	JOIN 
+		"products" "p" ON "p"."id"="pt"."productId"
+	JOIN 
+		"tags" "t" ON "t"."id"="pt"."tagId"
 	WHERE 
-		"id" = $1
+		"pt"."id" = $1
+	GROUP BY 
+		"p"."id","t"."id","pt"."id"
 	`
 	const values = [id]
+	const {rows} = await db.query(sql, values)
+	return rows[0]
+};
+
+exports.selectOneByProductIdAndTagId = async (productId, tagId) => {
+	const sql = 
+	`
+		SELECT 
+			"pt"."id",
+			"pt"."productId",
+			"pt"."tagId",
+			CONCAT("p"."name", ' - ', "t"."name") "productTag",
+			"pt"."createdAt",
+			"pt"."updatedAt"
+		FROM 
+			"productTags" "pt"
+		JOIN 
+			"products" "p" ON "p"."id"="pt"."productId"
+		JOIN 
+			"tags" "t" ON "t"."id"="pt"."tagId"
+		WHERE 
+			"pt"."productId" = $1 AND "pt"."tagId" = $2
+		GROUP BY 
+			"p"."id","t"."id","pt"."id"
+
+	`
+	const values = [productId,tagId]
 	const {rows} = await db.query(sql, values)
 	return rows[0]
 };

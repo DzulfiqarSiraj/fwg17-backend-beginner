@@ -1,6 +1,6 @@
 const db = require('../lib/db.lib')
 
-exports.selectAll = async (keyword='', page = 1, limit) => {
+exports.selectAll = async (keyword='On Process', page = 1, limit) => {
 	const offset = (page-1) * limit
 	const sql = 
 	`
@@ -22,7 +22,7 @@ exports.selectAll = async (keyword='', page = 1, limit) => {
 	return rows
 };
 
-exports.countAll = async (keyword='') =>{
+exports.countAll = async (keyword='On Process') =>{
 	const sql = 
 	`
 		SELECT 
@@ -64,8 +64,9 @@ exports.insert = async (data) => {
 	`
 	const values = [data.name, data.additionalPrice]
 	const {rows} = await db.query(sql, values)
+
 	return rows[0]
-};
+}
 
 exports.update = async (id, data) => {
 	const column = []
