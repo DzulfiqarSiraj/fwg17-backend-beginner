@@ -1,12 +1,12 @@
-const orderDetailRouter = require('express').Router()
+const orderDetailsRouter = require('express').Router()
 
-const orderDetailController = require('../../controllers/admin/orderDetails.controller')
+const orderDetailsController = require('../../controllers/admin/orderDetails.controller')
 
-orderDetailRouter.get('/', orderDetailController.getAllOrderDetails)
-orderDetailRouter.get('/:id', orderDetailController.getDetailOrderDetail)
-orderDetailRouter.post('/', orderDetailController.createOrderDetail)
-orderDetailRouter.patch('/:id', orderDetailController.updateOrderDetail)
-orderDetailRouter.delete('/:id', orderDetailController.deleteOrderDetail)
+orderDetailsRouter.get('/', orderDetailsController.getAllOrderDetails)
+orderDetailsRouter.get('/:id', orderDetailsController.getDetailOrderDetail)
+orderDetailsRouter.post('/', orderDetailsController.createOrderDetail)
+orderDetailsRouter.patch('/:id', orderDetailsController.updateOrderDetail)
+orderDetailsRouter.delete('/:id', orderDetailsController.deleteOrderDetail)
 
 
-module.exports = orderDetailRouter
+module.exports = orderDetailsRouter

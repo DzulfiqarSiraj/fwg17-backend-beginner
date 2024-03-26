@@ -1,12 +1,12 @@
-const productRatingRouter = require('express').Router()
+const productRatingsRouter = require('express').Router()
 
-const productRatingController = require('../../controllers/admin/productRatings.controller')
+const productRatingsController = require('../../controllers/admin/productRatings.controller')
 
-productRatingRouter.get('/', productRatingController.getAllProductRatings)
-productRatingRouter.get('/:id', productRatingController.getDetailProductRating)
-productRatingRouter.post('/', productRatingController.createProductRating)
-productRatingRouter.patch('/:id', productRatingController.updateProductRating)
-productRatingRouter.delete('/:id', productRatingController.deleteProductRating)
+productRatingsRouter.get('/', productRatingsController.getAllProductRatings)
+productRatingsRouter.get('/:id', productRatingsController.getDetailProductRating)
+productRatingsRouter.post('/', productRatingsController.createProductRating)
+productRatingsRouter.patch('/:id', productRatingsController.updateProductRating)
+productRatingsRouter.delete('/:id', productRatingsController.deleteProductRating)
 
 
-module.exports = productRatingRouter
+module.exports = productRatingsRouter

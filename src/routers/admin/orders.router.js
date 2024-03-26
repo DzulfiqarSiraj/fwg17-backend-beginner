@@ -1,11 +1,11 @@
-const orderRouter = require('express').Router()
+const ordersRouter = require('express').Router()
 
-const orderController = require('../../controllers/admin/orders.controller')
+const ordersController = require('../../controllers/admin/orders.controller')
 
-orderRouter.get('/',orderController.getAllOrders);
-orderRouter.get('/:id', orderController.getDetailOrder)
-orderRouter.post('/',orderController.createOrder);
-orderRouter.patch('/:id',orderController.updateOrder);
-orderRouter.delete('/:id',orderController.deleteOrder);
+ordersRouter.get('/',ordersController.getAllOrders);
+ordersRouter.get('/:id', ordersController.getDetailOrder)
+ordersRouter.post('/',ordersController.createOrder);
+ordersRouter.patch('/:id',ordersController.updateOrder);
+ordersRouter.delete('/:id',ordersController.deleteOrder);
 
-module.exports = orderRouter
+module.exports = ordersRouter

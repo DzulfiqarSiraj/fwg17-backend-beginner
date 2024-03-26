@@ -1,12 +1,12 @@
-const productTagRouter = require('express').Router()
+const productTagsRouter = require('express').Router()
 
-const productTagController = require('../../controllers/admin/productTags.controller')
+const productTagsController = require('../../controllers/admin/productTags.controller')
 
-productTagRouter.get('/', productTagController.getAllProductTags)
-productTagRouter.get('/:id', productTagController.getDetailProductTag)
-productTagRouter.post('/', productTagController.createProductTag)
-productTagRouter.patch('/:id', productTagController.updateProductTag)
-productTagRouter.delete('/:id', productTagController.deleteProductTag)
+productTagsRouter.get('/', productTagsController.getAllProductTags)
+productTagsRouter.get('/:id', productTagsController.getDetailProductTag)
+productTagsRouter.post('/', productTagsController.createProductTag)
+productTagsRouter.patch('/:id', productTagsController.updateProductTag)
+productTagsRouter.delete('/:id', productTagsController.deleteProductTag)
 
 
-module.exports = productTagRouter
+module.exports = productTagsRouter

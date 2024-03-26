@@ -1,12 +1,12 @@
-const tagRouter = require('express').Router()
+const tagsRouter = require('express').Router()
 
-const tagController = require('../../controllers/admin/tags.controller')
+const tagsController = require('../../controllers/admin/tags.controller')
 
-tagRouter.get('/', tagController.getAllTags)
-tagRouter.get('/:id', tagController.getDetailTag)
-tagRouter.post('/', tagController.createTag)
-tagRouter.patch('/:id', tagController.updateTag)
-tagRouter.delete('/:id', tagController.deleteTag)
+tagsRouter.get('/', tagsController.getAllTags)
+tagsRouter.get('/:id', tagsController.getDetailTag)
+tagsRouter.post('/', tagsController.createTag)
+tagsRouter.patch('/:id', tagsController.updateTag)
+tagsRouter.delete('/:id', tagsController.deleteTag)
 
 
-module.exports = tagRouter
+module.exports = tagsRouter

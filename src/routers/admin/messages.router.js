@@ -1,11 +1,11 @@
-const messageRouter = require('express').Router()
+const messagesRouter = require('express').Router()
 
-const messageController = require('../../controllers/admin/messages.controller')
+const messagesController = require('../../controllers/admin/messages.controller')
 
-messageRouter.get('/',messageController.getAllMessages);
-messageRouter.get('/:id', messageController.getDetailMessage)
-messageRouter.post('/',messageController.createMessage);
-messageRouter.patch('/:id',messageController.updateMessage);
-messageRouter.delete('/:id',messageController.deleteMessage);
+messagesRouter.get('/',messagesController.getAllMessages);
+messagesRouter.get('/:id', messagesController.getDetailMessage);
+messagesRouter.post('/',messagesController.createMessage);
+messagesRouter.patch('/:id',messagesController.updateMessage);
+messagesRouter.delete('/:id',messagesController.deleteMessage);
 
-module.exports = messageRouter
+module.exports = messagesRouter

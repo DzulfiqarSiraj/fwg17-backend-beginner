@@ -1,14 +1,14 @@
-const userRouter = require('express').Router()
+const usersRouter = require('express').Router()
 
-const userController = require('../../controllers/admin/users.controller')
+const usersController = require('../../controllers/admin/users.controller')
 
 const uploadMiddleware = require('../../middlewares/upload.middleware')
 
-userRouter.get('/', userController.getAllUsers)
-userRouter.get('/:id', userController.getDetailUser)
-userRouter.post('/', userController.createUser)
-userRouter.patch('/:id', userController.updateUser)
-userRouter.delete('/:id', userController.deleteUser)
+usersRouter.get('/', usersController.getAllUsers)
+usersRouter.get('/:id', usersController.getDetailUser)
+usersRouter.post('/', usersController.createUser)
+usersRouter.patch('/:id', usersController.updateUser)
+usersRouter.delete('/:id', usersController.deleteUser)
 
 
-module.exports = userRouter
+module.exports = usersRouter
