@@ -8,13 +8,13 @@ const path = require('path')
 
 exports.getAllProducts = async (req, res) => {
     try {
-        const {keyword, sort = 'id', page = 1, limit=5} = req.query
+        const {keyword, sort = 'id', page = 1, limit=5, isRecommended} = req.query
   
-        const count = Number(await productsModel.countAll(keyword))
+        const count = Number(await productsModel.countAll(keyword, isRecommended))
   
         const pagination = pageHandler(count,limit,page)
   
-        const products = await productsModel.selectAll(keyword, sort, page, limit)
+        const products = await productsModel.selectAll(keyword, sort, page, limit, isRecommended)
   
         if(keyword && products.length === 0){
             throw new Error(`Keyword doesn't match`)
