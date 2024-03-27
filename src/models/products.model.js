@@ -28,7 +28,7 @@ exports.selectAll = async (keyword='', sort, page=1, limit, isRecommended) => {
 		"tags" "t" ON "t"."id"="pt"."tagId"
 	WHERE 
 		"p"."name" ILIKE $1
-		${isRecommended? `"p"."isRecommended" = TRUE` : ''}
+		${isRecommended? `AND "p"."isRecommended" = TRUE` : ''}
 	GROUP BY 
 		"p"."id","c"."id","t"."id"
 	ORDER BY
@@ -70,7 +70,7 @@ exports.countAll = async (keyword='', isRecommended)=>{
 			"tags" "t" ON "t"."id"="pt"."tagId"
 		WHERE 
 			"p"."name" ILIKE $1
-			${isRecommended? `"p"."isRecommended" = TRUE` : ''}
+			${isRecommended? `AND "p"."isRecommended" = TRUE` : ''}
 		GROUP BY 
 			"p"."id","c"."id","t"."id") AS "data"
 	`
