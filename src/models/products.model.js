@@ -5,25 +5,31 @@ exports.selectAll = async (keyword='', sort, page=1, limit) => {
 	const sql = 
 	`
 	SELECT 
-		"p"."id",
-		"p"."name",
+		"p"."id" "id",
+		"p"."name" "name",
 		array_agg(DISTINCT "c"."name") "category",
-		"p"."basePrice",
-		"p"."description",
-		"p"."image",
-		"p"."isRecommended",
+		"p"."basePrice" "basePrice",
+		"p"."description" "description",
+		"p"."image" "image",
+		"t"."name" "tags",
+		"t"."discount" "discount",
+		"p"."isRecommended" "isRecommended",
 		"p"."createdAt",
 		"p"."updatedAt"
 	FROM 
 		"products" "p"
-	LEFT JOIN 
+	FULL JOIN 
 		"productCategories" "pc" ON "pc"."productId"="p"."id"
-	LEFT JOIN 
+	FULL JOIN 
 		"categories" "c" ON "c"."id"="pc"."categoryId"
-	WHERE 
+	FULL JOIN
+		"productTags" "pt" ON "p"."id"="pt"."productId"
+	FULL JOIN
+		"tags" "t" ON "t"."id"="pt"."productId"
+	WHERE
 		"p"."name" ILIKE $1
 	GROUP BY 
-		"p"."id"
+		"p"."id","t"."id"
 	ORDER BY
 		${sort == "category" ? `"c"."name"` : `"p".${sort}`} ASC
 	LIMIT ${limit} OFFSET ${offset}
@@ -40,25 +46,31 @@ exports.countAll = async (keyword='')=>{
 		COUNT(*) as "counts"
 	FROM
 		(SELECT 
-			"p"."id",
-			"p"."name",
+			"p"."id" "id",
+			"p"."name" "name",
 			array_agg(DISTINCT "c"."name") "category",
-			"p"."basePrice",
-			"p"."description",
-			"p"."image",
-			"p"."isRecommended",
+			"p"."basePrice" "basePrice",
+			"p"."description" "description",
+			"p"."image" "image",
+			"t"."name" "tags",
+			"t"."discount" "discount",
+			"p"."isRecommended" "isRecommended",
 			"p"."createdAt",
 			"p"."updatedAt"
 		FROM 
 			"products" "p"
-		LEFT JOIN 
+		FULL JOIN 
 			"productCategories" "pc" ON "pc"."productId"="p"."id"
-		LEFT JOIN 
+		FULL JOIN 
 			"categories" "c" ON "c"."id"="pc"."categoryId"
-		WHERE 
+		FULL JOIN
+			"productTags" "pt" ON "p"."id"="pt"."productId"
+		FULL JOIN
+			"tags" "t" ON "t"."id"="pt"."productId"
+		WHERE
 			"p"."name" ILIKE $1
 		GROUP BY 
-			"p"."id") AS "data"
+			"p"."id","t"."id") AS "data"
 	`
 	const values = [`%${keyword}%`]
 	const {rows} = await db.query(sql, values)
