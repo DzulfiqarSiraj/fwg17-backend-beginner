@@ -1,6 +1,6 @@
 const db = require('../lib/db.lib')
 
-exports.selectAll = async (keyword='', sort, page=1, limit) => {
+exports.selectAll = async (keyword='', sort, page=1, limit, isRecommended) => {
 	const offset = (page-1) * limit
 	const sql = 
 	`
@@ -28,6 +28,7 @@ exports.selectAll = async (keyword='', sort, page=1, limit) => {
 		"tags" "t" ON "t"."id"="pt"."tagId"
 	WHERE 
 		"p"."name" ILIKE $1
+		${isRecommended? `"p"."isRecommended" = TRUE` : ''}
 	GROUP BY 
 		"p"."id","c"."id","t"."id"
 	ORDER BY
@@ -39,7 +40,7 @@ exports.selectAll = async (keyword='', sort, page=1, limit) => {
 	return rows
 };
 
-exports.countAll = async (keyword='')=>{
+exports.countAll = async (keyword='', isRecommended)=>{
 	const sql = 
 	`
 	SELECT 
@@ -69,6 +70,7 @@ exports.countAll = async (keyword='')=>{
 			"tags" "t" ON "t"."id"="pt"."tagId"
 		WHERE 
 			"p"."name" ILIKE $1
+			${isRecommended? `"p"."isRecommended" = TRUE` : ''}
 		GROUP BY 
 			"p"."id","c"."id","t"."id") AS "data"
 	`
