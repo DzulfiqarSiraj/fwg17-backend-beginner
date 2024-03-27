@@ -18,13 +18,13 @@ exports.selectAll = async (keyword='', sort, page=1, limit) => {
 		"p"."updatedAt" AS "updatedAt"
 	FROM
 		"products" "p"
-	JOIN
+	FULL JOIN
 		"productCategories" "pc" ON "pc"."productId"="p"."id"
-	JOIN 
+	FULL JOIN 
 		"productTags" "pt" ON "pt"."productId"="p"."id"
-	JOIN 
+	FULL JOIN 
 		"categories" "c" ON "c"."id"="pc"."categoryId"
-	JOIN 
+	FULL JOIN 
 		"tags" "t" ON "t"."id"="pt"."tagId"
 	WHERE 
 		"p"."name" ILIKE $1
@@ -59,13 +59,13 @@ exports.countAll = async (keyword='')=>{
 			"p"."updatedAt" AS "updatedAt"
 		FROM
 			"products" "p"
-		JOIN
+		FULL JOIN
 			"productCategories" "pc" ON "pc"."productId"="p"."id"
-		JOIN 
+		FULL JOIN 
 			"productTags" "pt" ON "pt"."productId"="p"."id"
-		JOIN 
+		FULL JOIN 
 			"categories" "c" ON "c"."id"="pc"."categoryId"
-		JOIN 
+		FULL JOIN 
 			"tags" "t" ON "t"."id"="pt"."tagId"
 		WHERE 
 			"p"."name" ILIKE $1
