@@ -4,32 +4,32 @@ exports.selectAll = async (keyword='', sort, page=1, limit) => {
 	const offset = (page-1) * limit
 	const sql = 
 	`
-	SELECT 
-		"p"."id" "id",
-		"p"."name" "name",
-		array_agg(DISTINCT "c"."name") "category",
-		"p"."basePrice" "basePrice",
-		"p"."description" "description",
-		"p"."image" "image",
-		"t"."name" "tags",
-		"t"."discount" "discount",
-		"p"."isRecommended" "isRecommended",
-		"p"."createdAt",
-		"p"."updatedAt"
-	FROM 
+	SELECT
+		"p"."id" AS "id",
+		"p"."name" AS "name",
+		array_agg(distinct "c"."name") AS "category",
+		"p"."description" AS "description",
+		"p"."basePrice" AS "basePrice",
+		"t"."name" AS "tag",
+		"t"."discount" AS "discount",
+		"p"."image" AS "image",
+		"p"."isRecommended",
+		"p"."createdAt" AS "createdAt",
+		"p"."updatedAt" AS "updatedAt"
+	FROM
 		"products" "p"
-	FULL JOIN 
+	JOIN
 		"productCategories" "pc" ON "pc"."productId"="p"."id"
-	FULL JOIN 
+	JOIN 
+		"productTags" "pt" ON "pt"."productId"="p"."id"
+	JOIN 
 		"categories" "c" ON "c"."id"="pc"."categoryId"
-	FULL JOIN
-		"productTags" "pt" ON "p"."id"="pt"."productId"
-	FULL JOIN
-		"tags" "t" ON "t"."id"="pt"."productId"
-	WHERE
+	JOIN 
+		"tags" "t" ON "t"."id"="pt"."tagId"
+	WHERE 
 		"p"."name" ILIKE $1
 	GROUP BY 
-		"p"."id","t"."id"
+		"p"."id","c"."id","t"."id"
 	ORDER BY
 		${sort == "category" ? `"c"."name"` : `"p".${sort}`} ASC
 	LIMIT ${limit} OFFSET ${offset}
@@ -45,32 +45,32 @@ exports.countAll = async (keyword='')=>{
 	SELECT 
 		COUNT(*) as "counts"
 	FROM
-		(SELECT 
-			"p"."id" "id",
-			"p"."name" "name",
-			array_agg(DISTINCT "c"."name") "category",
-			"p"."basePrice" "basePrice",
-			"p"."description" "description",
-			"p"."image" "image",
-			"t"."name" "tags",
-			"t"."discount" "discount",
-			"p"."isRecommended" "isRecommended",
-			"p"."createdAt",
-			"p"."updatedAt"
-		FROM 
+		(SELECT
+			"p"."id" AS "id",
+			"p"."name" AS "name",
+			array_agg(distinct "c"."name") AS "category",
+			"p"."description" AS "description",
+			"p"."basePrice" AS "basePrice",
+			"t"."name" AS "tag",
+			"t"."discount" AS "discount",
+			"p"."image" AS "image",
+			"p"."isRecommended",
+			"p"."createdAt" AS "createdAt",
+			"p"."updatedAt" AS "updatedAt"
+		FROM
 			"products" "p"
-		FULL JOIN 
+		JOIN
 			"productCategories" "pc" ON "pc"."productId"="p"."id"
-		FULL JOIN 
+		JOIN 
+			"productTags" "pt" ON "pt"."productId"="p"."id"
+		JOIN 
 			"categories" "c" ON "c"."id"="pc"."categoryId"
-		FULL JOIN
-			"productTags" "pt" ON "p"."id"="pt"."productId"
-		FULL JOIN
-			"tags" "t" ON "t"."id"="pt"."productId"
-		WHERE
+		JOIN 
+			"tags" "t" ON "t"."id"="pt"."tagId"
+		WHERE 
 			"p"."name" ILIKE $1
 		GROUP BY 
-			"p"."id","t"."id") AS "data"
+			"p"."id","c"."id","t"."id") AS "data"
 	`
 	const values = [`%${keyword}%`]
 	const {rows} = await db.query(sql, values)
@@ -110,30 +110,35 @@ exports.selectOneDetailed = async (id) => {
 				'id',"v"."id",'variant',"v"."name",'additionalPrice',"v"."additionalPrice"
 				)
 			) AS "variants",
+		"t"."name" "tag",
 		"p"."description",
 		"p"."basePrice",
+		"t"."discount",
 		"p"."image",
 		"p"."isRecommended",
 		"p"."createdAt",
 		"p"."updatedAt"
 	FROM 
 		"products" "p"
-	INNER JOIN 
+	FULL JOIN 
 		"productVariants" "pv" ON "pv"."productId" = "p"."id"
-	INNER JOIN 
+	FULL JOIN 
 		"productSizes" "ps" ON "ps"."productId" = "p"."id"
-	INNER JOIN 
+	FULL JOIN 
 		"productCategories" "pc" ON "pc"."productId" = "p"."id"
-	RIGHT JOIN 
+	FULL JOIN
+		"productTags" "pt" ON "pt"."productId"="p"."id"
+	FULL JOIN 
 		"variants" "v" ON "v"."id"="pv"."variantId"
-	RIGHT JOIN 
+	FULL JOIN 
 		"sizes" "s" ON "s"."id"="ps"."sizeId"
-	RIGHT JOIN 
+	FULL JOIN 
 		"categories" "c" ON "c"."id"="pc"."categoryId"
-	WHERE 
-		"p"."id" = $1
+	FULL JOIN
+		"tags" "t"ON "t"."id"="pt"."tagId"
+    WHERE "p"."id" IS NOT NULL AND "p"."id" = $1
 	GROUP BY 
-		"p"."id", "p"."name", "c"."name"
+		"p"."id", "p"."name", "c"."name","t"."id"
 	`
 
 	const values = [id]
