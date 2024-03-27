@@ -74,7 +74,6 @@ exports.createProduct = async (req, res) => {
 				const pathDestination = path.join(global.path, 'uploads','products')
 				const fileTarget = path.join(pathDestination, req.file.filename)
 				const filename = `${product.id}_${req.body.name.split(' ').join('_')}${ext[req.file.mimetype]}`
-                console.log(filename)
 				const newPathDestination = path.join(pathDestination, filename)
 
 				await fsPromises.rename(fileTarget, newPathDestination)
