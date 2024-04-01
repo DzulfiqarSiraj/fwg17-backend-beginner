@@ -21,6 +21,38 @@ exports.selectAll = async (search, page = 1, limit) => {
 	return rows
 };
 
+exports.selectAllByUserId = async (userId, search, page = 1, limit) => {
+	const offset = (page-1) * limit
+	const sql = 
+	`
+	SELECT 
+		"id",
+		"userId",
+		"orderNumber",
+		"email",
+		"promoId",
+		"tax",
+		"grandTotal",
+		"deliveryAddress",
+		"status",
+		to_char(date("createdAt"), 'YYYY-MM-DD') AS "date"
+	FROM 
+		"orders"
+	WHERE 
+		"userId" = $1
+		${search ? `AND "status" = '${search}'` : ''}
+	ORDER BY 
+		"id" DESC
+	LIMIT
+		${limit} 
+	OFFSET 
+		${offset}
+	`
+	const values = [userId]
+	const {rows} = await db.query(sql, values)
+	return rows
+};
+
 exports.countAll = async (search) =>{
 	const sql = 
 	`
@@ -31,6 +63,22 @@ exports.countAll = async (search) =>{
 		${search ? `WHERE "status" = '${search}'` : ''}
 	`
 	const values = []
+	const {rows} = await db.query(sql, values)
+	return rows[0].counts
+};
+
+exports.countAllByUserId = async (userId, search) =>{
+	const sql = 
+	`
+		SELECT 
+			COUNT(*) as "counts"
+		FROM 
+			"orders"
+		WHERE 
+			"userId" = $1
+			${search ? `AND "status" = '${search}'` : ''}
+	`
+	const values = [userId]
 	const {rows} = await db.query(sql, values)
 	return rows[0].counts
 };
@@ -50,17 +98,32 @@ exports.selectOne = async (id) => {
 	return rows[0]
 };
 
+exports.selectIdByOrderNum = async (orderNumber) => {
+	const sql = 
+	`
+	SELECT 
+		"id"
+	FROM 
+		"orders"
+	WHERE 
+		"orderNumber" = $1
+	`
+	const values = [`${orderNumber}`]
+	const {rows} = await db.query(sql, values)
+	return rows[0]
+}
+
 exports.insert = async (data) => {
 	const sql = 
 	`
 	INSERT INTO 
 		"orders"
-		("userId","orderNumber","fullName","email","promoId","tax","grandTotal","deliveryAddress","status")
+		("userId","orderNumber","fullName","email","promoId","tax","grandTotal","deliveryAddress","status","shipping")
 	VALUES
-		($1,$2,$3,$4,$5,$6,$7,$8,$9)
+		($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
 	RETURNING *
 	`
-	const values = [data.userId, data.orderNumber, data.fullName, data.email, data.promoId, data.tax, data.grandTotal, data.deliveryAddress, data.status]
+	const values = [data.userId, data.orderNumber, data.fullName, data.email, data.promoId, data.tax, data.grandTotal, data.deliveryAddress, data.status, data.shipping]
 	const {rows} = await db.query(sql, values)
 	return rows[0]
 };

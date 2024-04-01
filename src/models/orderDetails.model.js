@@ -4,10 +4,42 @@ exports.selectAll = async (search, page = 1, limit) => {
 	const offset = (page-1) * limit
 	const sql = 
 	`
-	SELECT 
-		*
+	SELECT
+		"od"."id" "id",
+		"o"."id" "orderId",
+		"o"."userId" "userId",
+		"o"."orderNumber" "orderNumber",
+		"o"."fullName" "fullName",
+		"o"."email" "email",
+		"o"."promoId" "promoId",
+		"o"."tax" "tax",
+		"o"."grandTotal" "grandTotal",
+		"o"."deliveryAddress" "deliveryAddress",
+		"o"."status" "status",
+		"od"."productId" "productId",
+		"p"."name" "product",
+		"p"."image" "image",
+		"od"."productSizeId" "productSizeId",
+		"s"."name" "size",
+		"od"."productVariantId" "productVariantId",
+		"v"."name" "variant",
+		"od"."quantity" "quantity",
+		"od"."subTotal" "subTotal",
+		"o"."shipping" "shipping",
+		to_char(date("o"."createdAt"), 'YYYY-MM-DD') AS "date",
+		to_char("o"."createdAt", 'HH12:MI AM') AS "time",
+		"od"."createdAt",
+		"od"."updatedAt"
 	FROM 
-		"orderDetails"
+		"orderDetails" "od"
+	JOIN
+		"orders" "o" ON "o"."id"="od"."orderId"
+	JOIN
+		"products" "p" ON "p"."id"="od"."productId"
+	JOIN
+		"sizes" "s" ON "s"."id"="od"."productSizeId"
+	JOIN
+		"variants" "v" ON "v"."id"="od"."productVariantId"
 	WHERE
 		"orderId" = $1
 	ORDER BY 
