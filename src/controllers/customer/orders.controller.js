@@ -47,7 +47,12 @@ exports.createOrder = async (req, res) => {
         // grandTotal Calculation
         let total = cartData.reduce((prev, curr) => {
             const basePrice = Number(curr.product.basePrice)
-            const discount = parseFloat(curr.product.discount)
+            let discount
+            if(curr.product.discount === null){
+                discount = Number(0)
+            } else {
+                discount = parseFloat(curr.product.discount)
+            }
             const sizePrice = Number(curr.size.additionalPrice)
             const variantPrice = Number(curr.variant.additionalPrice)
             const quantity = Number(curr.quantity)
@@ -79,7 +84,12 @@ exports.createOrder = async (req, res) => {
         if(orderId){
             cartData.forEach(async (data) => {
                 const basePrice = Number(data.product.basePrice)
-                const discount = parseFloat(data.product.discount)
+                let discount
+                if(data.product.discount === null){
+                    discount = Number(0)
+                } else {
+                    discount = parseFloat(data.product.discount)
+                }
                 const sizePrice = Number(data.size.additionalPrice)
                 const variantPrice = Number(data.variant.additionalPrice)
                 const quantity = Number(data.quantity)
