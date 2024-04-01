@@ -1,65 +1,109 @@
 const ordersModel = require('../../models/orders.model')
+const orderDetailsModel = require('../../models/orderDetails.model')
 const {resFalse, resTrue, pageHandler, randNumGen} = require('../../utils/handler')
 
-// exports.getAllOrders = async (req, res) => {
-//     try {
-//         const {status, page = 1, limit = 5} = req.query
+exports.getAllOrders = async (req, res) => {
+    try {
+        const {userId, status , page = 1, limit = 5} = req.query
 
-//         const count = Number(await ordersModel.countAll(status))
+        const count = Number(await ordersModel.countAllByUserId(userId, status))
 
-//         const pagination = pageHandler(count, limit, page)
+        const pagination = pageHandler(count, limit, page)
 
-//         const orders = await ordersModel.selectAll(status,page, limit)
+        const orders = await ordersModel.selectAllByUserId(userId, status, page, limit)
 
-//         return resTrue(res, 'List All Orders', true, true, pagination, orders)
-//     } catch (error) {
-//         console.log(error)
-//         return resFalse(error, res, error.message, 'Order')
-//     }
-// };
+        return resTrue(res, 'List All Orders', true, true, pagination, orders)
+    } catch (error) {
+        console.log(error)
+        return resFalse(error, res, error.message, 'Order')
+    }
+};
 
-// exports.getDetailOrder = async (req, res) => {
-//     try {
-//         const id = Number(req.params.id)
-//         const order = await ordersModel.selectOne(id)
+exports.getDetailOrder = async (req, res) => {
+    try {
+        const id = Number(req.params.id)
+        const order = await ordersModel.selectOne(id)
         
-//         if(!order) {
-//             throw new Error(`Id is not found`)
-//         }
+        if(!order) {
+            throw new Error(`Id is not found`)
+        }
 
-//         return resTrue(res, 'Order Detail', false, true, null, order)
+        return resTrue(res, 'Order Detail', false, true, null, order)
 
-//     } catch (error) {
-//         console.log(error)
-//         return resFalse(error, res, error.message, 'Order')
-//     }
-// };
+    } catch (error) {
+        console.log(error)
+        return resFalse(error, res, error.message, 'Order')
+    }
+};
 
 exports.createOrder = async (req, res) => {
     try {
-        // const {userId,fullName,email,promoId,tax,grandTotal,deliveryAddress} = req.body
-        const {product} = req.body
-        console.log(product)
+        const {id} = req.user
+        const {cartData} = req.body
+        const {email, fullname, address} = req.body.custData
+        const shipping = req.body.shippingData
+        const shippingPrice = Number(req.body.shippingPrice)
 
+        // grandTotal Calculation
+        let total = cartData.reduce((prev, curr) => {
+            const basePrice = Number(curr.product.basePrice)
+            const discount = parseFloat(curr.product.discount)
+            const sizePrice = Number(curr.size.additionalPrice)
+            const variantPrice = Number(curr.variant.additionalPrice)
+            const quantity = Number(curr.quantity)
+            
+            return prev + (((basePrice - (basePrice * discount))+sizePrice+variantPrice) * quantity)
+        }, 0);
+
+        console.log(shippingPrice)
         const status = 'Awaiting Payment'
+        const orderNum = randNumGen()
+        const tax = 0.05
 
-        // if(!userId || !fullName || !email || !grandTotal || !deliveryAddress){
-        //     throw new Error('Undefined input')
-        // }
+        const order = await ordersModel.insert({
+            userId      : id,
+            orderNumber : orderNum,
+            fullName    : fullname,
+            email       : email,
+            promoId     : null,
+            tax         : tax,
+            grandTotal  : (total + (total * tax)) + shippingPrice,
+            deliveryAddress : address,
+            status      : status,
+            shipping    : shipping
+        })
 
-        // const order = await ordersModel.insert({
-        //     userId,
-        //     orderNumber : randNumGen(),
-        //     fullName,
-        //     email,
-        //     promoId,
-        //     tax         : 0.1,
-        //     grandTotal,
-        //     deliveryAddress,
-        //     status      : status
-        // })
+        const orderId = await ordersModel.selectIdByOrderNum(orderNum)
+        
+        // Add Data Order to Order Detail
+        if(orderId){
+            cartData.forEach(async (data) => {
+                const basePrice = Number(data.product.basePrice)
+                const discount = parseFloat(data.product.discount)
+                const sizePrice = Number(data.size.additionalPrice)
+                const variantPrice = Number(data.variant.additionalPrice)
+                const quantity = Number(data.quantity)
+                let subTotal = Number(((basePrice - (basePrice * discount)) + sizePrice + variantPrice) * quantity)
+                await orderDetailsModel.insert({
+                    userId              : id,
+                    orderId             : orderId.id,
+                    productId           : data.product.id,
+                    productSizeId       : data.size.id,
+                    productVariantId    : data.variant.id,
+                    quantity            : data.quantity,
+                    subTotal            : subTotal
+                })
+            });
+        }
 
-        // return resTrue(res, 'Create New Order Successfully',false, true, null, order)
+        if(req.body){
+            return res.json({
+                success: true,
+                message: "Create Order Successfully"
+            })
+        }
+
+        return resTrue(res, 'Create New Order Successfully',false, true, null, order)
 
     } catch (error) {
         console.log(error)
