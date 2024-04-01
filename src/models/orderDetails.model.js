@@ -24,6 +24,8 @@ exports.selectAll = async (search, page = 1, limit) => {
 		"od"."productVariantId" "productVariantId",
 		"v"."name" "variant",
 		"od"."quantity" "quantity",
+		"t"."name" "tag",
+		"t"."discount",
 		"od"."subTotal" "subTotal",
 		"o"."shipping" "shipping",
 		to_char(date("o"."createdAt"), 'YYYY-MM-DD') AS "date",
@@ -40,6 +42,10 @@ exports.selectAll = async (search, page = 1, limit) => {
 		"sizes" "s" ON "s"."id"="od"."productSizeId"
 	JOIN
 		"variants" "v" ON "v"."id"="od"."productVariantId"
+	FULL JOIN
+		"productTags" "pt" ON "pt"."productId"="p"."id"
+	FULL JOIN
+		"tags" "t" ON "t"."id"="pt"."tagId"
 	WHERE
 		"orderId" = $1
 	ORDER BY 
