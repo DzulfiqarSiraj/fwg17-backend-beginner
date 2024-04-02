@@ -38,6 +38,7 @@ exports.updateProfile = async (req, res) => {
                 const result = await cloudinary.uploader.upload(req.file.path, {
 					folder : 'cov-shop/users'
 				});
+                console.log(result)
 				req.body.pictures = result.secure_url
                 // if(existUser.pictures){
                 //     const currentFilePath = path.join(global.path,'uploads','users',existUser.pictures)
