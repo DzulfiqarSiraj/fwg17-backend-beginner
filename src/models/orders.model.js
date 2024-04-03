@@ -21,7 +21,7 @@ exports.selectAll = async (search, page = 1, limit) => {
 	return rows
 };
 
-exports.selectAllByUserId = async (userId, search, page = 1, limit) => {
+exports.selectAllByUserId = async (userId, search = '', page = 1, limit) => {
 	const offset = (page-1) * limit
 	const sql = 
 	`
@@ -40,7 +40,7 @@ exports.selectAllByUserId = async (userId, search, page = 1, limit) => {
 		"orders"
 	WHERE 
 		"userId" = $1
-		${search ? `AND "status" = '${search}'` : ''}
+		${search == '' ? '' : `AND "status" = '${search}'`}
 	ORDER BY 
 		"id" DESC
 	LIMIT
@@ -67,7 +67,7 @@ exports.countAll = async (search) =>{
 	return rows[0].counts
 };
 
-exports.countAllByUserId = async (userId, search) =>{
+exports.countAllByUserId = async (userId, search = '') =>{
 	const sql = 
 	`
 		SELECT 
@@ -76,7 +76,7 @@ exports.countAllByUserId = async (userId, search) =>{
 			"orders"
 		WHERE 
 			"userId" = $1
-			${search ? `AND "status" = '${search}'` : ''}
+			${search === '' ? '' : `AND "status" = '${search}'`}
 	`
 	const values = [userId]
 	const {rows} = await db.query(sql, values)
