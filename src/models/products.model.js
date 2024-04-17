@@ -1,6 +1,6 @@
 const db = require('../lib/db.lib')
 
-exports.selectAll = async (keyword='', sort, page=1, limit, isRecommended) => {
+exports.selectAll = async (keyword='', category = '', sort, page=1, limit, isRecommended) => {
 	const offset = (page-1) * limit
 	const sql = 
 	`
@@ -28,19 +28,22 @@ exports.selectAll = async (keyword='', sort, page=1, limit, isRecommended) => {
 		"tags" "t" ON "t"."id"="pt"."tagId"
 	WHERE 
 		"p"."name" ILIKE $1
+		${category !== '' ? `AND "c"."name" IN (${category.map((cat) => `'${cat}'`).join(',')})` : ''}
 		${isRecommended? `AND "p"."isRecommended" = TRUE` : ''}
 	GROUP BY 
-		"p"."id","c"."id","t"."id"
+		"p"."id","t"."id"
+		${category != '' ? `HAVING COUNT(DISTINCT "c"."name") = ${category.length}`: ''}
 	ORDER BY
 		${sort == "category" ? `"c"."name"` : `"p".${sort}`} ASC
 	LIMIT ${limit} OFFSET ${offset}
 	`
+
 	const values = [`%${keyword}%`]
 	const {rows} = await db.query(sql,values)
 	return rows
 };
 
-exports.countAll = async (keyword='', isRecommended)=>{
+exports.countAll = async (keyword='', category ='', isRecommended)=>{
 	const sql = 
 	`
 	SELECT 
@@ -70,9 +73,12 @@ exports.countAll = async (keyword='', isRecommended)=>{
 			"tags" "t" ON "t"."id"="pt"."tagId"
 		WHERE 
 			"p"."name" ILIKE $1
+			${category !== '' ? `AND "c"."name" IN (${category.map((cat) => `'${cat}'`).join(',')})` : ''}
 			${isRecommended? `AND "p"."isRecommended" = TRUE` : ''}
 		GROUP BY 
-			"p"."id","c"."id","t"."id") AS "data"
+			"p"."id","t"."id"
+			${category != '' ? `HAVING COUNT(DISTINCT "c"."name") = ${category.length}`: ''}
+		) AS "data"
 	`
 	const values = [`%${keyword}%`]
 	const {rows} = await db.query(sql, values)
