@@ -106,7 +106,7 @@ describe('Create Product Controller', () => {
     }
 
     it('Should return object', async () => {
-        const req = {
+        let req = {
             headers: {
                 ['content-type'] : 'multipart',
                 ['transfer-encoding'] : '',
@@ -116,8 +116,50 @@ describe('Create Product Controller', () => {
                 basePrice: 20000
             }
         }
-        const response = await productController.createProduct(req, res)
+        const response = await productController.createProduct(req,res)
+        console.log(response)
         expect(typeof response).to.be.equal('object')
+    })
+})
+
+describe('Update Product Controller', () => {
+    const res = {
+        json: (param) => {
+            return param
+        }
+    }
+
+    let req = {
+        headers: {
+            ['content-type'] : 'multipart',
+            ['transfer-encoding'] : '',
+        },
+        body: {
+            name: 'New Product',
+            basePrice : 30000
+        },
+        params: {
+            id: 1
+        }
+    }
+    it('Should return object', async () => {
+        const response = await productController.updateProduct(req, res)
+        expect(typeof response).to.be.equal('object')
+    })
+
+    it('Should return message: No Existing Data', async () => {
+        const req = {
+            params: {
+                id: 1000
+            }
+        }
+        const response = await productController.updateProduct(req, res)
+        expect(response.message).to.be.equal('No Existing Data')
+    })
+
+    it('Should return success: true', async () => {
+        const response = await productController.updateProduct(req, res)
+        expect(response.success).to.be.equal(true)
     })
 })
 
