@@ -8,5 +8,4 @@ productTagsRouter.post('/', productTagsController.createProductTag)
 productTagsRouter.patch('/:id', productTagsController.updateProductTag)
 productTagsRouter.delete('/:id', productTagsController.deleteProductTag)
 
-
 module.exports = productTagsRouter

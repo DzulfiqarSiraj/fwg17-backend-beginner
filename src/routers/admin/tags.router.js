@@ -8,5 +8,4 @@ tagsRouter.post('/', tagsController.createTag)
 tagsRouter.patch('/:id', tagsController.updateTag)
 tagsRouter.delete('/:id', tagsController.deleteTag)
 
-
 module.exports = tagsRouter

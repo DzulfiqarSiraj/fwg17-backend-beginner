@@ -8,5 +8,4 @@ productCategoriesRouter.post('/', productCategoriesController.createProductCateg
 productCategoriesRouter.patch('/:id', productCategoriesController.updateProductCategory)
 productCategoriesRouter.delete('/:id', productCategoriesController.deleteProductCategory)
 
-
 module.exports = productCategoriesRouter

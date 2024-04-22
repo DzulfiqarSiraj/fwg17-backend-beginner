@@ -8,5 +8,4 @@ orderDetailsRouter.post('/', orderDetailsController.createOrderDetail)
 orderDetailsRouter.patch('/:id', orderDetailsController.updateOrderDetail)
 orderDetailsRouter.delete('/:id', orderDetailsController.deleteOrderDetail)
 
-
 module.exports = orderDetailsRouter

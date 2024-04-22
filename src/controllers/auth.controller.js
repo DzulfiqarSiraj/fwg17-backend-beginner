@@ -2,47 +2,43 @@ const userModel = require('../models/users.model')
 const argon = require('argon2')
 const jwt = require('jsonwebtoken')
 
+exports.login = async (req, res) => {
+  try {
+    const { email, password } = req.body
 
+    const user = await userModel.selectOneByEmail(email)
 
-exports.login = async (req,res) => {
-  try{
-  const {email, password} = req.body
-
-  const user = await userModel.selectOneByEmail(email)
-
-  if(!user){
-    console.log('err')
-    throw Error('wrong')
-  }
-  
-  const verify = await argon.verify(user.password,password)
-  
-  if(!verify){
-    console.log('err')
-    throw Error('wrong')
-  }
-  
-  const payload = {
-    id: user.id,
-    role: user.role
-  }
-  const token = jwt.sign(payload, process.env.APP_SECRET || 'secretkey')
-
-  return res.json({
-    success: true,
-    message: 'Login Success',
-    results: {
-      token: token
+    if (!user) {
+      console.log('err')
+      throw Error('wrong')
     }
-  })
 
-  }catch(err){
-    if(err.message === 'wrong'){
+    const verify = await argon.verify(user.password, password)
+
+    if (!verify) {
+      console.log('err')
+      throw Error('wrong')
+    }
+
+    const payload = {
+      id: user.id,
+      role: user.role
+    }
+    const token = jwt.sign(payload, process.env.APP_SECRET || 'secretkey')
+
+    return res.json({
+      success: true,
+      message: 'Login Success',
+      results: {
+        token
+      }
+    })
+  } catch (err) {
+    if (err.message === 'wrong') {
       return res.status(401).json({
         success: false,
-        message: "Wrong Email or Password"
+        message: 'Wrong Email or Password'
       })
-
     }
     console.log(err)
     return res.status(500).json({
@@ -65,8 +61,8 @@ exports.login = async (req,res) => {
 }
 
 exports.register = async (req, res) => {
-  try{
-    const {fullName, email, password, address, phoneNumber} = req.body
+  try {
+    const { fullName, email, password, address, phoneNumber } = req.body
 
     const hashed = await argon.hash(password)
 
@@ -77,18 +73,17 @@ exports.register = async (req, res) => {
       address,
       phoneNumber,
       role: 'Customer'
-  })
-  return res.json({
-    success: true,
-    message: 'Register Successfully',
-    results: data
-  })
-
-  }catch(err){
+    })
+    return res.json({
+      success: true,
+      message: 'Register Successfully',
+      results: data
+    })
+  } catch (err) {
     console.log(err)
     return res.status(500).json({
       success: false,
-      message: "Internal Server Error"
+      message: 'Internal Server Error'
     })
   }
 }

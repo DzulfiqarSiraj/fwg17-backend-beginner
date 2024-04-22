@@ -8,5 +8,4 @@ productRatingsRouter.post('/', productRatingsController.createProductRating)
 productRatingsRouter.patch('/:id', productRatingsController.updateProductRating)
 productRatingsRouter.delete('/:id', productRatingsController.deleteProductRating)
 
-
 module.exports = productRatingsRouter

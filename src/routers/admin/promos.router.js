@@ -8,5 +8,4 @@ promosRouter.post('/', promosController.createPromo)
 promosRouter.patch('/:id', promosController.updatePromo)
 promosRouter.delete('/:id', promosController.deletePromo)
 
-
 module.exports = promosRouter
